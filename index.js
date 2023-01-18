@@ -3,6 +3,7 @@ let NIL = void 0,
   CMP_KEY = '__m',
   isArray = Array.isArray,
   isFn = x => typeof x === 'function',
+  isObj = x => x !== null && typeof x === 'object',
   noop = _ => {},
   isRenderable = v => v === null || typeof v === 'string' || typeof v === 'number' || v[CMP_KEY] || isArray(v),
   makeEl = v => v[CMP_KEY] ? document.createElement(v.tag) : document.createTextNode(v),
@@ -79,9 +80,10 @@ export function render(parent, v, env) {
   }
 }
 
-export function mount(el, cmp, env) {
-  env = { redraw: _ => requestAnimationFrame(_ => render(el, { children: cmp() }, env)) };
-  return REDRAWS.push(env.redraw) && env.redraw;
+export function mount(el, cmp, env, redraw) {
+  env = { redraw: (redraw = _ => requestAnimationFrame(_ => render(el, { children: cmp() }, env))) };
+  REDRAWS.push(redraw);
+  redraw();
 }
 
 export const redraw = _ => {
@@ -90,7 +92,7 @@ export const redraw = _ => {
 };
 
 export function m(...args) {
-  let attrs = {},
+  let k, tmp, attrs = {},
     [head, ...tail] = args,
     [tag, ...classes] = head.split('.'),
     children = [];
@@ -98,7 +100,23 @@ export function m(...args) {
   if (tail.length && !isRenderable(tail[0]))
     [attrs, ...tail] = tail;
 
-  if (attrs.class) classes = [...classes, attrs.class];
+  if (attrs.class) {
+    if (isObj(attrs.class)) {
+      tmp = '';
+      
+      for (k in attrs.class) {
+        if (attrs.class[k]) {
+          tmp && (tmp += ' ');
+          tmp += k;
+        }
+      }
+      
+      attrs.class = tmp;
+    }
+
+    classes = [...classes, ...attrs.class.split(' ')];
+  }
+
   attrs = {...attrs};
   addChildren(tail, children); // will recurse through tail and push valid childs to `children`
   return {[CMP_KEY]: 1, tag: tag || 'div', attrs, classes, children};
