@@ -58,8 +58,11 @@ export function render(parent, v, env) {
     let child = news[i],
       el = olds[i] || makeEl(child); // get existing node/element (olds[i]) or make new one
 
-    if (!olds[i]) parent.appendChild(el); // if old one in that index of parent does not exist, append the new element we just created
-    if ((el.tagName || '') !== (child.tag || '').toUpperCase()) // if old one does exist, but there is a tag mismatch, we need to create a new element, and replace old one
+    // if old one in that index of parent does not exist, append the new element we just created
+    if (!olds[i]) parent.appendChild(el);
+
+    // if old one does exist, but there is a tag mismatch, we need to create a new element, and replace old one
+    if ((el.tagName || '') !== (child.tag || '').toUpperCase())
       (el = makeEl(child)) && parent.replaceChild(el, olds[i]);
 
     // at this point, el is either the old Element,
