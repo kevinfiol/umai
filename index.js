@@ -77,17 +77,17 @@ export function render(parent, v, env) {
     // we will look through the vnode's (child) children now
     render(el, child, env);
   }
-};
+}
 
 export function mount(el, cmp, env) {
   env = { redraw: _ => requestAnimationFrame(_ => render(el, { children: cmp() }, env)) };
   return REDRAWS.push(env.redraw) && env.redraw;
-};
+}
 
 export const redraw = _ => {
   for (let i = 0; i < REDRAWS.length; i++)
     REDRAWS[i]();
-}
+};
 
 export function m(...args) {
   let attrs = {},
@@ -102,4 +102,4 @@ export function m(...args) {
   attrs = {...attrs};
   addChildren(tail, children); // will recurse through tail and push valid childs to `children`
   return {[CMP_KEY]: 1, tag: tag || 'div', attrs, classes, children};
-};
+}
