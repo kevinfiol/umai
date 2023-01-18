@@ -1,4 +1,5 @@
 let NIL = void 0,
+  REDRAWS = [],
   CMP_KEY = '__m',
   isArray = Array.isArray,
   isFn = x => typeof x === 'function',
@@ -78,13 +79,15 @@ export function render(parent, v, env) {
   }
 };
 
-export function mount(el, cmp) {
-  let env = {
-    redraw: _ => requestAnimationFrame(_ => render(el, { children: cmp() }, env))
-  };
-  
-  env.redraw();
+export function mount(el, cmp, env) {
+  env = { redraw: _ => requestAnimationFrame(_ => render(el, { children: cmp() }, env)) };
+  return REDRAWS.push(env.redraw) && env.redraw;
 };
+
+export const redraw = _ => {
+  for (let i = 0; i < REDRAWS.length; i++)
+    REDRAWS[i]();
+}
 
 export function m(...args) {
   let attrs = {},
