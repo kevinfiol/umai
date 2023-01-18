@@ -1,0 +1,79 @@
+lockfileVersion: 5.4
+
+specifiers:
+  bundt: 1.1.5
+  flitch: 0.7.3
+
+devDependencies:
+  bundt: 1.1.5
+  flitch: 0.7.3
+
+packages:
+
+  /acorn/8.8.1:
+    resolution: {integrity: sha512-7zFpHzhnqYKrkYdUjF1HI1bzd0VygEGX8lFk4k5zVMqHEoES+P+7TKI+EvLO9WVMJ8eekdO0aDEK044xTXwPPA==}
+    engines: {node: '>=0.4.0'}
+    hasBin: true
+    dev: true
+
+  /buffer-from/1.1.2:
+    resolution: {integrity: sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==}
+    dev: true
+
+  /bundt/1.1.5:
+    resolution: {integrity: sha512-ROl3LJ3giqU1n2rv4dRcyjUN6M3fA8vxPM7oU5+VFAAn38Z9nkbzhpLAykc4+qVz5GhaC8DgVnVy3Q8mjO1Gsg==}
+    engines: {node: '>=6'}
+    hasBin: true
+    dependencies:
+      kleur: 4.1.5
+      mk-dirs: 3.0.0
+      rewrite-imports: 3.0.0
+      terser: 4.8.1
+    dev: true
+
+  /commander/2.20.3:
+    resolution: {integrity: sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==}
+    dev: true
+
+  /flitch/0.7.3:
+    resolution: {integrity: sha512-yMHHAMQGO3SjucHGV+gbDxiPhhSPkIq4Iq6WYg4jUdmiSgd/9qc7ea41mQenG8kk6x0zh0Npn2pdwCDPmJlm2A==}
+    engines: {node: '>=14.x'}
+    dev: true
+
+  /kleur/4.1.5:
+    resolution: {integrity: sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ==}
+    engines: {node: '>=6'}
+    dev: true
+
+  /mk-dirs/3.0.0:
+    resolution: {integrity: sha512-FEZDdUFb88hgdnsfAPa4VxcPVOd+8GyZ2jsI965im5bjBlBYhrvXuTqLka/UHa6YdUNN/kZBsVgofhZ3322AJw==}
+    engines: {node: '>=6'}
+    dev: true
+
+  /rewrite-imports/3.0.0:
+    resolution: {integrity: sha512-RClzg1cUfYLYkQadcrjgih8+CqJDKOP3OIWGkFE+e5n71085QnOwghzLPonEe1gG6iblCVJ8lHGFtd+n8wj3Hg==}
+    engines: {node: '>=6'}
+    dev: true
+
+  /source-map-support/0.5.21:
+    resolution: {integrity: sha512-uBHU3L3czsIyYXKX88fdrGovxdSCoTGDRZ6SYXtSRxLZUzHg5P/66Ht6uoUlHu9EZod+inXhKo3qQgwXUT/y1w==}
+    dependencies:
+      buffer-from: 1.1.2
+      source-map: 0.6.1
+    dev: true
+
+  /source-map/0.6.1:
+    resolution: {integrity: sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==}
+    engines: {node: '>=0.10.0'}
+    dev: true
+
+  /terser/4.8.1:
+    resolution: {integrity: sha512-4GnLC0x667eJG0ewJTa6z/yXrbLGv80D9Ru6HIpCQmO+Q4PfEtBFi0ObSckqwL6VyQv/7ENJieXHo2ANmdQwgw==}
+    engines: {node: '>=6.0.0'}
+    hasBin: true
+    dependencies:
+      acorn: 8.8.1
+      commander: 2.20.3
+      source-map: 0.6.1
+      source-map-support: 0.5.21
+    dev: true

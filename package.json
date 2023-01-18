@@ -1,0 +1,32 @@
+{
+  "name": "umai",
+  "version": "0.1.0",
+  "license": "MIT",
+  "repository": "https://github.com/kevinfiol/umai",
+  "type": "module",
+  "description": "small ui library",
+  "main": "dist/umai.cjs",
+  "module": "dist/umai.js",
+  "unpkg": "dist/umai.min.js",
+  "umd:name": "umai",
+  "scripts": {
+    "test": "node test.js",
+    "build": "bundt index.js && node test.js",
+    "prepare": "npm run build"
+  },
+  "engines": {
+    "node": ">=12.x"
+  },
+  "files": [
+    "*.d.ts",
+    "dist"
+  ],
+  "devDependencies": {
+    "bundt": "1.1.5",
+    "flitch": "0.7.3"
+  },
+  "keywords": [
+    "vdom",
+    "ui"
+  ]
+}
