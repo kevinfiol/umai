@@ -6,6 +6,7 @@ let NIL = void 0,
   isStr = x => typeof x === 'string',
   isFn = x => typeof x === 'function',
   isObj = x => x !== null && typeof x === 'object',
+  noop = _ => {},
   isRenderable = x => x === null || typeof x === 'string' || typeof x === 'number' || x[CMP_KEY] || isArray(x),
   makeEl = v => v[CMP_KEY] ? document.createElement(v.tag) : document.createTextNode(v),
   addChildren = (x, children, i) => {
@@ -14,7 +15,7 @@ let NIL = void 0,
   };
 
 let update = (el, v, env, redraw) => {
-  redraw = env ? env.redraw : _ => {};
+  redraw = env ? env.redraw : noop;
 
   if (!v[CMP_KEY])
     return el.data === v + '' || (el.data = v);
