@@ -3,13 +3,15 @@ let NIL = void 0,
   CMP_KEY = '__m',
   RETAIN_KEY = '=',
   isArray = Array.isArray,
+  isStr = x => typeof x === 'string',
   isFn = x => typeof x === 'function',
+  isObj = x => x !== null && typeof x === 'object',
   noop = _ => {},
-  isRenderable = v => v === null || typeof v === 'string' || typeof v === 'number' || v[CMP_KEY] || isArray(v),
+  isRenderable = x => x === null || typeof x === 'string' || typeof x === 'number' || x[CMP_KEY] || isArray(x),
   makeEl = v => v[CMP_KEY] ? document.createElement(v.tag) : document.createTextNode(v),
-  addChildren = (v, children, i) => {
-    if (isArray(v)) for (i = 0; i < v.length; i++) addChildren(v[i], children);
-    else if (v !== null && v !== false && v !== NIL) children.push(v)
+  addChildren = (x, children, i) => {
+    if (isArray(x)) for (i = 0; i < x.length; i++) addChildren(x[i], children);
+    else if (x !== null && x !== false && x !== NIL) children.push(x)
   };
 
 let update = (el, v, env, redraw) => {
@@ -19,14 +21,6 @@ let update = (el, v, env, redraw) => {
     return el.data === v + '' || (el.data = v);
 
   let i, tmp;
-  for (i = 0, tmp = v.classes; i < tmp.length; i++)
-    if (!el.classList.contains(tmp[i]))
-      el.classList.add(tmp[i]);
-
-  for (i = 0, tmp = el.classList; i < tmp.length; i++)
-    if (!v.classes.includes(tmp[i]))
-      el.classList.remove(tmp[i]);
-
   for (i in v.attrs)
     if (el[i] !== (tmp = v.attrs[i])) {
       let fn;
@@ -47,45 +41,48 @@ let update = (el, v, env, redraw) => {
     }
 }
 
-export function render(parent, v, env) {
+export function render(parent, x, env) {
   let i, tmp,
     olds = parent.childNodes || [],
-    children = v.children || [],
+    children = x.children || [],
     news = isArray(children) ? children : [children];
 
   for (i = 0, tmp = Array(Math.max(0, olds.length - news.length)); i < tmp.length; i++)
     parent.removeChild(parent.lastChild);
 
   for (i = 0; i < news.length; i++) {
-    let child = news[i],
-      el = olds[i] || makeEl(child); // get existing node/element (olds[i]) or make new one
+    let el, vnode = news[i];
+    if (vnode.tag === RETAIN_KEY) continue;
 
-    if (child.tag === RETAIN_KEY) continue;
+    // get existing node/element (olds[i]) or make new one
+    el = olds[i] || makeEl(vnode);
 
     // if old one in that index of parent does not exist, append the new element we just created
     if (!olds[i]) parent.appendChild(el);
 
     // if old one does exist, but there is a tag mismatch, we need to create a new element, and replace old one
-    if ((el.tagName || '') !== (child.tag || '').toUpperCase())
-      (el = makeEl(child)) && parent.replaceChild(el, olds[i]);
+    if ((el.tagName || '') !== (vnode.tag || '').toUpperCase()) {
+      el = makeEl(vnode);
+      parent.replaceChild(el, olds[i]);
+    }
 
     // at this point, el is either the old Element,
     // or the new one we just created.
     // child is the vnode that we maybe just created a new element from.
     // now we are going to look at the vnode, and update the element's
     // attributes/classes
-    update(el, child, env);
+    update(el, vnode, env);
 
     // now recurse, treating el as the parent
     // we will look through the vnode's (child) children now
-    render(el, child, env);
+    render(el, vnode, env);
   }
 }
 
 export function mount(el, cmp, env, redraw) {
   REDRAWS.push(redraw = _ => requestAnimationFrame(_ => render(el, { children: cmp() }, env)));
   env = { redraw };
-  redraw();
+  return redraw() && redraw;
 }
 
 export const redraw = i => {
@@ -93,34 +90,33 @@ export const redraw = i => {
     REDRAWS[i]();
 };
 
-export function m(head, ...tail) {
-  let k, tmp, attrs = {},
-    [tag, ...classes] = head.split('.'),
+export function m(tag, ...tail) {
+  let k, tmp, classes,
+    attrs = {},
     children = [];
 
   if (tail.length && !isRenderable(tail[0]))
     [attrs, ...tail] = tail;
 
-  if (attrs.class) {
-    if (attrs.class !== null && typeof attrs.class === 'object') {
-      tmp = '';
+  if (isStr(tag)) {
+    [tag, ...classes] = tag.split('.');
+    classes = classes.join(' ');
 
-      for (k in attrs.class) {
-        if (attrs.class[k]) {
-          tmp && (tmp += ' ');
-          tmp += k;
+    if (isObj(tmp = attrs.class)) {
+      for (k in tmp) {
+        if (tmp[k]) {
+          classes && (classes += ' ');
+          classes += k;
         }
       }
-
-      attrs.class = tmp;
     }
 
-    classes = [...classes, ...attrs.class.split(' ')];
+    if (isStr(tmp)) classes += !classes ? tmp : tmp ? ' ' + tmp : '';
+    classes && (attrs.class = classes);
   }
 
-  attrs = {...attrs};
   addChildren(tail, children); // will recurse through tail and push valid childs to `children`
-  return {[CMP_KEY]: 1, tag: tag || 'div', attrs, classes, children};
+  return {[CMP_KEY]: 1, tag, attrs: { ...attrs }, children};
 }
 
 m.retain = _ => m(RETAIN_KEY);
