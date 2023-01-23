@@ -23,12 +23,15 @@ let update = (el, v, env, redraw) => {
   let i, tmp;
   for (i in v.attrs)
     if (el[i] !== (tmp = v.attrs[i])) {
-      let fn;
+      let fn, res;
       if (tmp === null || tmp === NIL || tmp === true) tmp = '';
-      else if (tmp === false) el.removeAttribute(i);
+      if (tmp === false) el.removeAttribute(i);
       else if (i.startsWith('on'))
         el[i] = isFn(fn = tmp)
-          ? ev => { isFn(fn.then) ? fn(ev).finally(redraw) : (fn(ev), redraw()); }
+          ? ev =>
+            (res = fn(ev)) instanceof Promise
+              ? res.finally(_ => (redraw(), res = NIL))
+              : (redraw(), res = NIL)
           : NIL;
       else el.setAttribute(i, tmp);
     }
