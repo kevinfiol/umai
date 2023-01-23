@@ -21,18 +21,19 @@ let update = (el, v, env, redraw) => {
     return el.data === v + '' || (el.data = v);
 
   let i, tmp;
-  for (i in v.attrs)
-    if (el[i] !== (tmp = v.attrs[i])) {
-      let fn, res;
+  for (i in v.attrs) {
+    if (i.startsWith('on') && isFn(v.attrs[i]) && el[i] !== v.attrs[i]) {
+      let res, fn = v.attrs[i];
+      el[i] = ev =>
+        (res = fn(ev)) instanceof Promise
+          ? res.finally(_ => (redraw(), res = NIL))
+          : (redraw(), res = NIL);
+    } else if (el.getAttribute(i) != (tmp = v.attrs[i])) {
       if (tmp === null || tmp === NIL || tmp === true) tmp = '';
       if (tmp === false) el.removeAttribute(i);
-      else if (i.startsWith('on') && isFn(fn = tmp))
-        el[i] = ev =>
-          (res = fn(ev)) instanceof Promise
-            ? res.finally(_ => (redraw(), res = NIL))
-            : (redraw(), res = NIL);
       else el.setAttribute(i, tmp);
     }
+  }
 
   for (i = 0, tmp = [...el.getAttributeNames(), ...Object.keys(el)]; i < tmp.length; i++)
     if (!(tmp[i] in v.attrs)) {
