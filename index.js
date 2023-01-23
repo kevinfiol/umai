@@ -35,7 +35,7 @@ let update = (el, v, env, redraw) => {
     }
 
   for (i = 0, tmp = [...el.getAttributeNames(), ...Object.keys(el)]; i < tmp.length; i++)
-    if (!(tmp[i] in v.attrs) && tmp[i] !== 'class') {
+    if (!(tmp[i] in v.attrs)) {
       if (tmp[i].startsWith('on') && isFn(el[tmp[i]]))
         el[tmp[i]] = NIL;
       else el.removeAttribute(tmp[i]);
