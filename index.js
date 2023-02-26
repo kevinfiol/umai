@@ -107,14 +107,14 @@ export function m(tag, ...tail) {
     if (isObj(tmp = attrs.class)) {
       for (k in tmp) {
         if (tmp[k]) {
-          classes && (classes += ' ');
+          if (classes) classes += ' ';
           classes += k;
         }
       }
     }
 
     if (isStr(tmp)) classes += !classes ? tmp : tmp ? ' ' + tmp : '';
-    classes && (attrs.class = classes);
+    if (classes) attrs.class = classes;
   }
 
   addChildren(tail, children); // will recurse through tail and push valid childs to `children`
