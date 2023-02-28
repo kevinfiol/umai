@@ -15,12 +15,16 @@ let NIL = void 0,
   };
 
 let update = (el, v, env, redraw) => {
+  // in the event that `render` is called directly, env.redraw won't exist
+  // account for that here
   redraw = env ? env.redraw : noop;
 
+  // if it's a text element, set the data
   if (!v[CMP_KEY])
     return el.data === v + '' || (el.data = v);
 
   let i, tmp;
+  // set the attributes
   for (i in v.attrs) {
     if (i.startsWith('on') && isFn(v.attrs[i]) && el[i] !== v.attrs[i]) {
       let res, fn = v.attrs[i];
@@ -35,6 +39,7 @@ let update = (el, v, env, redraw) => {
     }
   }
 
+  // remove attributes
   for (i = 0, tmp = [...el.getAttributeNames(), ...Object.keys(el)]; i < tmp.length; i++)
     if (!(tmp[i] in v.attrs)) {
       if (tmp[i].startsWith('on') && isFn(el[tmp[i]]))
@@ -43,12 +48,13 @@ let update = (el, v, env, redraw) => {
     }
 }
 
-export function render(parent, x, env) {
+export function render(parent, cmp, env) {
   let i, tmp,
     olds = parent.childNodes || [],
-    children = x.children || [],
+    children = cmp.children || [],
     news = isArray(children) ? children : [children];
 
+  // remove excess old nodes
   for (i = 0, tmp = Array(Math.max(0, olds.length - news.length)); i < tmp.length; i++)
     parent.removeChild(parent.lastChild);
 
@@ -70,13 +76,13 @@ export function render(parent, x, env) {
 
     // at this point, el is either the old Element,
     // or the new one we just created.
-    // child is the vnode that we maybe just created a new element from.
+    // `vnode` is the vnode that we maybe just created a new element from.
     // now we are going to look at the vnode, and update the element's
     // attributes/classes
     update(el, vnode, env);
 
     // now recurse, treating el as the parent
-    // we will look through the vnode's (child) children now
+    // we will look through the vnode's children now
     render(el, vnode, env);
   }
 }
