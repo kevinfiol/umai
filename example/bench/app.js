@@ -1,4 +1,4 @@
-import { mount, m, redraw } from '../index.js';
+import { mount, m, redraw } from '../../index.js';
 import { buildData } from './setup.js';
 
 // state
