@@ -1,81 +1,105 @@
-import { m, render, mount } from '../index.js';
+import { m, mount } from '../index.js';
+import { h, app, text } from './hyperapp.js';
 
-// function App() {
-//   return (
-//     m('div.monospace',
-//       m('h1', 'A simple app'),
-//       m(Counter, { initialCount: 0 }),
-//       m(Counter, { initialCount: 10 })
-//     )
-//   );
-// }
+const root = document.getElementById('app');
 
-// // simple components
-// function Double({ count }) {
-//   return m('h2', count * 2);
-// }
+const xs = [
+  { id: 1, name: 'aaab' },
+  { id: 2, name: 'aab' },
+  { id: 3, name: 'aabb' },
+  { id: 4, name: 'abbb' },
+  { id: 5, name: 'bbba' },
+  { id: 6, name: 'bbaa' },
+  { id: 7, name: 'baaa' },
+];
 
-// // stateful components
-// function Counter({ initialCount }) {
-//   let count = initialCount;
+export function runHyperApp() {
+  const Increment = (state) => ({
+    ...state,
+    count: state.count + 1
+  });
 
-//   return () => [
-//     m('h2', count),
-//     m('h3', 'doubled:'),
-//     m(Double, { count }),
-    
-//     count % 4 === 0 &&
-//       m('p', 'divisible by 4')
-//     ,
-    
-//     m('button', { onclick: () => count += 1 }, 'increment')
-//   ];
-// }
+  const FilterResults = (state, event) => ({
+    ...state,
+    input: event.target.value,
+    filtered: state.list.filter(x => x.name.indexOf(event.target.value) > -1)
+  });
 
-let count = 0;
+  const Counter = ({ count }) => (
+    h('span', {}, [
+      h('h2', {}, text(`Counter: ${count}`)),
+      h('button', { onclick: Increment }, text('increment'))
+    ])
+  );
 
-const Third = (_, children) => (
-  m('span',
-    m('h2', 'Counter: ', count),
-    m('button', { onclick: () => count += 1 }, 'increment'),
-    children
-  )
-)
+  const App = ({ input, filtered }) => (
+    h("div", { class: 'monospace' }, [
+      h('h1', { class: 'sans-serif' }, text('hello')),
+      // Counter({ count })
+      h('input', { type: 'text', value: input, oninput: FilterResults }),
+      h('div', {},
+        filtered.map(person =>
+          h('div', { key: person.id }, text(person.name))
+        )
+      )
+    ])
+  );
 
-const SubCounter = () => (
-  m(Third, m('h3', 'an h3'))
-)
+  const initialState = { count: 0, list: xs, filtered: xs, input: '' };
 
-// const Counter = () => (
-//   m(SubCounter)
-// );
+  app({
+    init: initialState,
+    view: App,
+    node: document.getElementById('app')
+  });
 
-const Counter = () => {
-  let count = 0;
-
-  return () => (
-    m('div.counter',
-      m('h2', count),
-      m('button', { onclick: () => count += 1 }, 'inc')
-    )
-  )
+  debug(App(initialState));
 }
 
-const App = () => (
-  m('div.monospace',
-    m('h1', { class: 'sans-serif' }, 'hello'),
-    m(Counter)
+export function runUmaiApp() {
+  let count = 0;
+
+  const Third = (_, children) => (
+    m('span',
+      m('h2', 'Counter: ', count),
+      m('button', { onclick: () => count += 1 }, 'increment'),
+      children
+    )
   )
-);
 
-export function runApp() {
-  const root = document.getElementById('app');
-  // mount(document.getElementById('app'), App);
+  const SubCounter = () => (
+    m(Third, m('h3', 'an h3'))
+  )
 
-  mount(root,
-    App
+  const Counter = () => (
+    m(SubCounter)
   );
-  // debug(App());
+
+  // const Counter = () => {
+  //   let count = 0;
+
+  //   return () => (
+  //     m('div.counter',
+  //       m('h2', count),
+  //       m('button', { onclick: () => count += 1 }, 'inc')
+  //     )
+  //   )
+  // }
+
+  // const App = () => (
+  //   m('div.monospace',
+  //     m('h1', { class: 'sans-serif' }, 'hello'),
+  //     m('p',
+  //       m('span', 'in the p')
+  //     )
+  //     // m(Counter)
+  //   )
+  // );
+
+  const App = () => m('div.monospace', 'hello');
+
+  mount(root, App);
+  debug(App());
 }
 
 function debug(tree) {

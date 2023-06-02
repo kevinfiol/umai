@@ -1,4 +1,8 @@
 let NIL = void 0,
+  COMPONENT = 2,
+  ELEMENT = 1,
+  TEXT = 3,
+  EMPTY_ARR = [],
   REDRAWS = [],
   DOM_KEY = Symbol('umai'),
   RETAIN_KEY = '=',
@@ -10,14 +14,17 @@ let NIL = void 0,
   noop = _ => {},
   isRenderable = x => x === null || typeof x === 'string' || typeof x === 'number' || x.type || isArray(x),
   makeEl = v => v.tag ? document.createElement(v.tag) : document.createTextNode(v),
-  addChildren = (x, children, i) => {
-    if (isArray(x)) for (i = 0; i < x.length; i++) addChildren(x[i], children);
-    else if (x !== null && x !== false && x !== NIL) children.push(x)
-  };
+  getKey = v => v == null ? v : v.key,
+  addChildren = (x, children) => {
+    if (isArray(x)) for (let i = 0; i < x.length; i++) addChildren(x[i], children);
+    else if (isStr(x)) children.push({ type: TEXT, tag: x });
+    else if (x !== null && x !== false && x !== NIL) children.push(x);
+  },
+  map = EMPTY_ARR.map;
 
 let renderComponent = vnode => {
   let fn = vnode.tag,
-    htmlVnode = fn(vnode.attrs, vnode.children);
+    htmlVnode = fn(vnode.props, vnode.children);
 
   while (htmlVnode.type !== 1) {
     // how do you know when you've run into the same closure comopnent again?
@@ -36,114 +43,300 @@ let renderComponent = vnode => {
 
     // if the type is not 1, that means we have nested component vnode
     fn = htmlVnode.tag;
-    htmlVnode = htmlVnode.tag(htmlVnode.attrs, htmlVnode.children);
+    htmlVnode = htmlVnode.tag(htmlVnode.props, htmlVnode.children);
   }
 
   return htmlVnode;
 };
 
-let update = (el, vnode, env, redraw) => {
-  // debugger;
-  // in the event that `render` is called directly, env.redraw won't exist
-  // account for that here
-  redraw = env ? env.redraw : noop;
+let patchProp = (node, name, newProp, { redraw }) => {
+  if (name in node) {
+    if (name[0] === 'o' && name[1] === 'n') {
+      let res, fn = newProp;
 
-  // if it's a text element, set the data
-  if (!vnode.tag)
-    return el.nodeValue === vnode + '' || (el.nodeValue = vnode)
-
-  let i;
-  // set the attributes
-  for (i in vnode.attrs) {
-    let attr = vnode.attrs[i];
-
-    if (i in el) {
-      // it's an element property
-      // if it's an event handler, bind to redraw
-      if (i[0] === 'o' && i[1] === 'n' && isFn(attr)) {
-        let res, fn = attr;
-        el[i] = ev =>
-          (res = fn(ev)) instanceof Promise
-            ? res.finally(_ => (redraw(), res = NIL))
-            : (redraw(), res = NIL);
-      } else el[i] = attr; // else assign the property to the element/node
-    } else if (!isFn(attr) && el.getAttribute(i) != attr) {
-      if (attr === null || attr === NIL || attr === true) attr = '';
-      if (attr === false) el.removeAttribute(i);
-      else el.setAttribute(i, attr);
-    }
+      node[name] = ev =>
+        (res = fn(ev)) instanceof Promise
+          ? res.finally(_ => (redraw(), res = NIL))
+          : (redraw(), res = NIL);
+    } else if (name !== 'list' && name !== 'form') node[name] = newProp;
+  } else if (!isFn(newProp) && node.getAttribute(name) != newProp) {
+    if (newProp == null || newProp === false) node.removeAttribute(name);
+    else node.setAttribute(name, newProp);
   }
+};
 
-  let oldAttrs;
-  if (oldAttrs = el[DOM_KEY].oldAttrs) {
-    for (i = 0; i < oldAttrs.length; i++) {
-      let attrName = oldAttrs[i];
-      if (!(attrName in vnode.attrs)) {
-        if (attrName in el) el[attrName] = NIL;
-        else el.removeAttribute(attrName);
+let normalizeVnode = vnode =>
+  vnode !== true && vnode !== false && vnode
+    ? vnode
+    : { type: TEXT, tag: '' };
+
+let createNode = (vnode, env) => {
+  if (vnode.type === TEXT)
+    return document.createTextNode(vnode.tag);
+
+  let i, len,
+    props = vnode.props,
+    node = document.createElement(vnode.tag);
+
+  for (i in props) patchProp(node, i, props[i], env);
+
+  for (i = 0, len = vnode.children.length; i < len; i++)
+    node.appendChild(
+      createNode(
+        (vnode.children[i] = normalizeVnode(vnode.children[i])),
+        env
+      )
+    );
+
+  return (vnode.node = node);
+};
+
+let patch = (parent, node, oldVNode, newVNode, env) => {
+  debugger;
+  if (oldVNode === newVNode) {
+  } else if (oldVNode != null && oldVNode.type === TEXT && newVNode.type === TEXT) {
+    // they are both text nodes
+    // update if the newVNode does not equal the old one
+    if (oldVNode.tag !== newVNode.tag) node.nodeValue = newVNode.tag;
+  } else if (oldVNode == null || oldVNode.tag !== newVNode.tag) {
+    // if there is a tag mismatch
+    // or the old vnode does not exist
+    // there needs to be a node replacement
+    node = parent.insertBefore(
+      createNode((newVNode = normalizeVnode(newVNode)), env),
+      node
+    )
+
+    // if the oldVnode did exist, make sure to remove its real node from the real DOM
+    if (oldVNode != null) parent.removeChild(oldVNode.node)
+  } else {
+    let i,
+      tmpVKid,
+      oldVKid,
+      oldKey,
+      newKey,
+      oldProps = oldVNode.props,
+      newProps = newVNode.props,
+      oldVKids = oldVNode.children,
+      newVKids = newVNode.children,
+      oldHead = 0,
+      newHead = 0,
+      oldTail = oldVKids.length - 1,
+      newTail = newVKids.length - 1;
+
+    // 1. patch the properties first
+    for (i in { ...oldProps, ...newProps }) {
+      // if the property is value, selected, or checked, compare the property on the actual dom NODE to newProps
+      // otherwise, compare oldProps[i] to newProps[i]
+      if (
+        (i === "value" || i === "selected" || i === "checked"
+          ? node[i]
+          : oldProps[i]) !== newProps[i]
+      ) {
+        patchProp(node, i, newProps[i], env)
+      }
+    }
+
+    // 2. patch children from top to bottom
+    // loop while we are in the bounds of the new children AND the old children
+    while (newHead <= newTail && oldHead <= oldTail) {
+      // if either the old first child isn't keyed
+      // or if the old first child's key doesn't match the new first child key,
+      // BREAK
+      // so this means if you have a list of unkeyed OLD children, we will not execute this while block at all
+      if (
+        (oldKey = getKey(oldVKids[oldHead])) == null ||
+        oldKey !== getKey(newVKids[newHead])
+      ) {
+        break;
+      }
+
+      patch(
+        node,
+        oldVKids[oldHead].node,
+        oldVKids[oldHead],
+        (newVKids[newHead] = normalizeVnode(
+          newVKids[newHead++]
+        )),
+        env
+      );
+
+      oldHead++;
+    }
+
+    // 3. patch children from bottom to top
+    // loop while we are in the bounds of the new children AND the old children
+    while (newHead <= newTail && oldHead <= oldTail) {
+      // if either the old LAST child isn't keyed
+      // or if the old LAST child's key doesn't match the new LAST child key,
+      // BREAK
+      // so this means if you have a list of unkeyed OLD children, we will not execute this while block at all
+      if (
+        (oldKey = getKey(oldVKids[oldTail])) == null ||
+        oldKey !== getKey(newVKids[newTail])
+      ) {
+        break;
+      }
+
+      patch(
+        node,
+        oldVKids[oldTail].node,
+        oldVKids[oldTail],
+        (newVKids[newTail] = normalizeVnode(
+          newVKids[newTail--]
+        )),
+        env
+      );
+
+      oldTail--;
+    }
+
+    if (oldHead > oldTail) {
+      while (newHead <= newTail) {
+        node.insertBefore(
+          createNode(
+            (newVKids[newHead] = normalizeVnode(newVKids[newHead++])),
+            env
+          ),
+          (oldVKid = oldVKids[oldHead]) && oldVKid.node
+        );
+      }
+    } else if (newHead > newTail) {
+      while (oldHead <= oldTail) {
+        node.removeChild(oldVKids[oldHead++].node);
+      }
+    } else {
+      // grab all the old keys from the old children
+      let keyed = {},
+        newKeyed = {},
+        i = oldHead;
+
+      for (; i <= oldTail; i++) {
+        if ((oldKey = oldVKids[i].key) != null) {
+          keyed[oldKey] = oldVKids[i];
+        }
+      }
+
+      while (newHead <= newTail) {
+        // get the key for the current old child
+        // while you're at it, assign oldVKid (which is undefined on the first iteration of this loop)
+        // to the current child at the index oldHead (which we will increment)
+        oldKey = getKey((oldVKid = oldVKids[oldHead]));
+
+        // get the key for the current new child
+        // while we're at it, assign the current index at newVKids
+        // use maybeVnode to normalize the vnode at newVKids[newHead].
+        // oldVKid is passed in solely for memoization purposes, so can ignore that for now
+        newKey = getKey(
+          (newVKids[newHead] = normalizeVnode(newVKids[newHead]))
+        );
+
+        // if we have this oldKey in newKeyed
+        // or if newKey is defined and is equal to the *next* old child's key
+        if (
+          newKeyed[oldKey] ||
+          (newKey != null && newKey === getKey(oldVKids[oldHead + 1]))
+        ) {
+          // then you can remove the old child at the current oldHead index
+          // assuming it's key is null or undefined
+          if (oldKey == null) {
+            node.removeChild(oldVKid.node);
+          }
+          // then increment oldHead and go to next iteration
+          oldHead++;
+          continue;
+        }
+
+        // otherwise, if the new child is keyless, and the oldVNode is not a text node
+        // (remember, this is not a child, oldVNode is the PARENT during this call of patch)
+        if (newKey == null || oldVNode.type !== TEXT) {
+          if (oldKey == null) {
+            patch(
+              node,
+              oldVKid && oldVKid.node,
+              oldVKid,
+              newVKids[newHead],
+              env
+            );
+
+            newHead++;
+          }
+
+          oldHead++;
+        } else {
+          if (oldKey === newKey) {
+            patch(
+              node,
+              oldVKid.node,
+              oldVKid,
+              newVKids[newHead],
+              env
+            )
+            newKeyed[newKey] = true;
+            oldHead++;
+          } else {
+            if ((tmpVKid = keyed[newKey]) != null) {
+              patch(
+                node,
+                node.insertBefore(tmpVKid.node, oldVKid && oldVKid.node),
+                tmpVKid,
+                newVKids[newHead],
+                env
+              );
+
+              newKeyed[newKey] = true;
+            } else {
+              patch(
+                node,
+                oldVKid && oldVKid.node,
+                null,
+                newVKids[newHead],
+                env
+              );
+            }
+          }
+
+          newHead++;
+        }
+      }
+
+      while (oldHead <= oldTail) {
+        if (getKey((oldVKid = oldVKids[oldHead++])) == null) {
+          node.removeChild(oldVKid.node);
+        }
+      }
+
+      for (let i in keyed) {
+        if (newKeyed[i] == null) {
+          node.removeChild(keyed[i].node);
+        }
       }
     }
   }
 
-  el[DOM_KEY].oldAttrs = Object.keys(vnode.attrs);
-  // console.log(el);
+  return (newVNode.node = node);
 }
 
-export function render(parentEl, vnode, env) {
-  let i, tmp,
-    olds = parentEl.childNodes || [],
-    news = vnode.children || [];
+// this will convert an element node into a umai-compatible vnode
+let convertNode = node =>
+  node.nodeType === 3 // text node
+    ? { node, type: TEXT, tag: node.nodeValue }
+    : { node, ...m(node.nodeName.toLowerCase(), map.call(node.childNodes, convertNode)) };
 
-  if (vnode.type === 2) {
-    // component vnode
-    return render(parentEl, renderComponent(vnode));
-  }
+export function mount(node, view) {
+  let env = {},
+    dom = convertNode(node),
+    draw = _ =>
+      (node = patch(
+        node.parentNode, // parentNode
+        node, // node
+        dom, // oldVnode
+        (dom = view()), // newVnode
+        env // env
+      ));
 
-  // trim the parent's nodes until you have the length of the vnode's children
-  for (i = 0, tmp = Math.max(0, olds.length - news.length); i < tmp; i++) {
-    parentEl.removeChild(parentEl.lastChild);
-  }
-
-  // process children; create elements, update them, patch them, etc.
-  for (i = 0, tmp = news.length; i < tmp; i++) {
-    let el, _vnode = news[i];
-
-    // if the child is a component, dive until we receive a type=1 (HTML) vnode
-    if (_vnode.type === 2) _vnode = renderComponent(_vnode);
-
-    // get existing node/element (olds[i]) or make new one
-    el = olds[i] || makeEl(_vnode);
-
-    // if old one in that index of parent does not exist, append the new element we just created
-    if (!olds[i]) parentEl.appendChild(el);
-
-    // if old one does exist, but there is a tag mismatch, we need to create a new element, and replace old one
-    if ((el.tagName || '') !== (_vnode.tag || '').toUpperCase()) {
-      el = makeEl(_vnode);
-      parentEl.replaceChild(el, olds[i]);
-    }
-
-    // attach umai "bag"
-    el[DOM_KEY] = el[DOM_KEY] || {};
-
-    // at this point, el is either the old Element,
-    // or the new one we just created.
-    // `vnode` is the vnode that we maybe just created a new element from.
-    // now we are going to look at the vnode, and update the element's
-    // attributes/classes
-    update(el, _vnode, env);
-
-    // now recurse, treating el as the parent
-    // we will look through the vnode's children now
-    render(el, _vnode, env);
-  }
-}
-
-export function mount(el, cmp) {
-  let env, redraw;
-  REDRAWS.push(redraw = _ => requestAnimationFrame(_ => render(el, { children: [m(cmp)] }, env)));
-  env = { redraw };
-  return redraw() && redraw;
+  REDRAWS.push(env.redraw = _ => requestAnimationFrame(draw));
+  return env.redraw() && env.redraw;
 }
 
 export const redraw = _ => {
@@ -154,19 +347,19 @@ export const redraw = _ => {
 /** @type {import('./index.d.ts').m} **/
 export function m(tag, ...tail) {
   let k, tmp, classes,
-    type = isFn(tag) ? 2 : 1,
-    attrs = {},
+    type = isFn(tag) ? COMPONENT : ELEMENT,
+    props = {},
     children = [];
 
   if (tail.length && !isRenderable(tail[0]))
-    [attrs, ...tail] = tail;
+    [props, ...tail] = tail;
 
   if (isStr(tag)) {
     [tag, ...classes] = tag.split('.');
 
     classes = classes.join(' ');
 
-    if (isObj(tmp = attrs.class)) {
+    if (isObj(tmp = props.class)) {
       for (k in tmp) {
         if (tmp[k]) {
           if (classes) classes += ' ';
@@ -176,11 +369,11 @@ export function m(tag, ...tail) {
     }
 
     if (isStr(tmp)) classes += !classes ? tmp : tmp ? ' ' + tmp : '';
-    if (classes) attrs.class = classes;
+    if (classes) props.class = classes;
   }
 
   addChildren(tail, children); // will recurse through tail and push valid childs to `children`
-  return { type, tag, attrs: { ...attrs }, children };
+  return { type, tag, props: { ...props }, children };
 }
 
 m.retain = _ => m(RETAIN_KEY);
