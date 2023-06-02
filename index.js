@@ -34,38 +34,56 @@ let patchProp = (node, name, newProp, { redraw }) => {
   }
 };
 
-let normalizeVnode = vnode =>
-  vnode !== true && vnode !== false && vnode
-    ? vnode
-    : { type: TEXT, tag: '' };
+let normalizeVnode = (vnode, oldVNode) => {
+  if (vnode !== true && vnode !== false && vnode) {
+    // stateful component logic goes here OR NOT
+    if (oldVNode && oldVNode.id !== NIL && isFn(vnode.tag) && oldVNode.fn === vnode.fn) {
+      // get the render fn
+      let existing = STATEFUL.get(vnode.fn);
+      let renderFn = existing.get(oldVNode.id);
+      // overwrite newVnode
+      return {
+        ...oldVNode,
+        ...vnode,
+        ...renderFn(vnode.props, vnode.children)
+      };
+    } else if (vnode.fn !== NIL && isFn(vnode.tag)) {
+      // vnode.tag is the renderFn
+      let _vnode, id, existing = STATEFUL.get(vnode.fn) || new Map;
+      id = 1;
 
-let unpackComponent = (vnode) => {
-  let fn = vnode.tag,
-    key = vnode.key;
+      while (existing.has(id)) id++;
+      existing.set(id, vnode.tag);
+      if (!STATEFUL.has(vnode.fn)) STATEFUL.set(vnode.fn, existing);
 
-  vnode = fn(vnode.props, vnode.children);
-  vnode.key = key;
+      _vnode = { id, ...vnode, ...vnode.tag(vnode.props, vnode.children) };
+      return _vnode;
+    }
 
-  while (vnode.type === COMPONENT) {
-    // how do you know when you've run into the same closure comopnent again?
-    // and thus, how do you know which renderFn to call (or whether to create a new one)?
-
-    // if (isFn(htmlVnode)) {
-    //   let id = 1,
-    //    existing = STATEFUL.get(fn) || new Map;
-
-    //   while (existing.has(id)) id++;
-    //   existing.set(id, htmlVnode);
-
-    //   // closure component
-    //   CLOSURES.set(htmlVnode, fn); // renderFn -> outerFn
-    // }
-    fn = vnode.tag;
-    key = vnode.key;
-    vnode = vnode.tag(vnode.props, vnode.children);
-    vnode.key = key;
+    return vnode;
   }
 
+  return { type: TEXT, tag: '' };
+}
+
+let unpackComponent = (vnode) => {
+  debugger;
+  let last, fn, id, key, props, children;
+
+  while (!vnode.type || vnode.type === COMPONENT) {
+    if (isFn(vnode))
+      return { ...last, fn, tag: vnode };
+
+    last = vnode;
+    fn = vnode.tag;
+    key = vnode.key || key;
+    id = vnode.id || id;
+    props = vnode.props;
+    children = vnode.children;
+    vnode = fn(props, children);
+  }
+
+  vnode.key = key;
   return vnode;
 };
 
@@ -102,7 +120,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
     // or the old vnode does not exist
     // there needs to be a node replacement
     node = parent.insertBefore(
-      createNode((newVNode = normalizeVnode(newVNode)), env),
+      createNode((newVNode = normalizeVnode(newVNode, oldVNode)), env),
       node
     )
 
@@ -155,12 +173,11 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
         oldVKids[oldHead].node,
         oldVKids[oldHead],
         (newVKids[newHead] = normalizeVnode(
-          newVKids[newHead++]
+          newVKids[newHead++],
+          oldVKids[oldHead++]
         )),
         env
       );
-
-      oldHead++;
     }
 
     // 3. patch children from bottom to top
@@ -182,7 +199,8 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
         oldVKids[oldTail].node,
         oldVKids[oldTail],
         (newVKids[newTail] = normalizeVnode(
-          newVKids[newTail--]
+          newVKids[newTail--],
+          oldVKids[oldTail--]
         )),
         env
       );
@@ -194,7 +212,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
       while (newHead <= newTail) {
         node.insertBefore(
           createNode(
-            (newVKids[newHead] = normalizeVnode(newVKids[newHead++])),
+            (newVKids[newHead] = normalizeVnode(newVKids[newHead++], oldVKids[oldHead])),
             env
           ),
           (oldVKid = oldVKids[oldHead]) && oldVKid.node
@@ -227,7 +245,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
         // use maybeVnode to normalize the vnode at newVKids[newHead].
         // oldVKid is passed in solely for memoization purposes, so can ignore that for now
         newKey = getKey(
-          (newVKids[newHead] = normalizeVnode(newVKids[newHead]))
+          (newVKids[newHead] = normalizeVnode(newVKids[newHead], oldVKid))
         );
 
         // if we have this oldKey in newKeyed
@@ -314,22 +332,17 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
     }
   }
 
-  console.log(oldVNode);
+  console.log({ oldVNode, newVNode });
   return (newVNode.node = node);
 }
 
-// this will convert an element node into a umai-compatible vnode
-let convertNode = node =>
-  node.nodeType === 3 // text node
-    ? { node, type: TEXT, tag: node.nodeValue }
-    : { node, ...m(node.nodeName.toLowerCase(), map.call(node.childNodes, convertNode)) };
-
 export function mount(node, view) {
-  node.innerHTML = '<div></div>';
+  // debugger;
+  node.innerHTML = '<a></a>';
   node = node.lastChild;
 
   let env = {},
-    dom = convertNode(node),
+    dom = { type: ELEMENT, node },
     draw = _ =>
       (node = patch(
         node.parentNode, // parentNode
@@ -350,6 +363,7 @@ export const redraw = _ => {
 
 /** @type {import('./index.d.ts').m} **/
 export function m(tag, ...tail) {
+  // debugger;
   let vnode, key, i, tmp, classes,
     type = isFn(tag) ? COMPONENT : ELEMENT,
     props = {},

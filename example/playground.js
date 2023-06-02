@@ -60,32 +60,32 @@ export function runUmaiApp() {
   let count = 0;
   let filtered = [...xs];
 
-  const Third = (_, children) => (
-    m('span',
-      m('h2', 'Counter: ', count),
-      m('button', { onclick: () => count += 1 }, 'increment'),
-      children
-    )
-  )
-
-  const SubCounter = () => (
-    m(Third, m('h3', 'an h3'))
-  )
-
-  const Counter = () => (
-    m(SubCounter)
-  );
-
-  // const Counter = () => {
-  //   let count = 0;
-
-  //   return () => (
-  //     m('div.counter',
-  //       m('h2', count),
-  //       m('button', { onclick: () => count += 1 }, 'inc')
-  //     )
+  // const Third = (_, children) => (
+  //   m('span',
+  //     m('h2', 'Counter: ', count),
+  //     m('button', { onclick: () => count += 1 }, 'increment'),
+  //     children
   //   )
-  // }
+  // )
+
+  // const SubCounter = () => (
+  //   m(Third, m('h3', 'an h3'))
+  // )
+
+  // const Counter = () => (
+  //   m(SubCounter)
+  // );
+
+  const Counter = () => {
+    let count = 0;
+
+    return () => (
+      m('div.counter',
+        m('h2', count),
+        m('button', { onclick: () => count += 1 }, 'inc')
+      )
+    )
+  };
 
   // const App = () => (
   //   m('div.monospace',
@@ -110,21 +110,23 @@ export function runUmaiApp() {
   const App = () => (
     m('div.monospace',
       m('h1', { class: 'sans-serif' }, 'sup'),
-      m('input', { value, oninput: (ev) => {
-        value = ev.target.value;
-        filtered = xs.filter(x => x.name.indexOf(value) > -1)
-      } }),
+      m(Counter),
+      m(Counter)
+      // m('input', { value, oninput: (ev) => {
+      //   value = ev.target.value;
+      //   filtered = xs.filter(x => x.name.indexOf(value) > -1)
+      // } }),
 
-      m('ul',
-        filtered.map(x =>
-          m(ListItem, { key: x.name, name: x.name })
-        )
-      )
+      // m('ul',
+      //   filtered.map(x =>
+      //     m(ListItem, { key: x.name, name: x.name })
+      //   )
+      // )
     )
   );
 
   mount(root, App);
-  debug(App());
+  // debug(App());
 }
 
 function debug(tree) {
