@@ -26,16 +26,18 @@ export function runHyperApp() {
   });
 
   const Counter = ({ count }) => (
-    h('span', {}, [
+    h('div', {}, [
       h('h2', {}, text(`Counter: ${count}`)),
       h('button', { onclick: Increment }, text('increment'))
     ])
   );
 
-  const App = ({ input, filtered }) => (
+  const App = ({ count, input, filtered }) => (
     h("div", { class: 'monospace' }, [
       h('h1', { class: 'sans-serif' }, text('hello')),
-      // Counter({ count })
+      input !== 'r' && 
+        h('p', {}, text('remove me')),
+      ,
       h('input', { type: 'text', value: input, oninput: FilterResults }),
       h('div', {},
         filtered.map(person =>
@@ -53,7 +55,7 @@ export function runHyperApp() {
     node: document.getElementById('app')
   });
 
-  debug(App(initialState));
+  // debug(App(initialState));
 }
 
 export function runUmaiApp() {
@@ -105,27 +107,40 @@ export function runUmaiApp() {
     m('li', name)
   );
 
+  const PureCounter = () => (
+    m('div.counter',
+      m('h2', count),
+      m('button', { onclick: () => count += 1 }, 'inc')
+    )
+  );
+
   let value = '';
 
   const App = () => (
     m('div.monospace',
       m('h1', { class: 'sans-serif' }, 'sup'),
-      m(Counter),
-      m(Counter)
-      // m('input', { value, oninput: (ev) => {
-      //   value = ev.target.value;
-      //   filtered = xs.filter(x => x.name.indexOf(value) > -1)
-      // } }),
 
-      // m('ul',
-      //   filtered.map(x =>
-      //     m(ListItem, { key: x.name, name: x.name })
-      //   )
-      // )
+      value !== 'r' &&
+        m('p', 'remove me')
+      ,
+
+      m('input', { value, oninput: (ev) => {
+        value = ev.target.value;
+        filtered = xs.filter(x => x.name.indexOf(value) > -1)
+      } }),
+
+      m('ul',
+        filtered.map(x =>
+          m(ListItem, { key: x.name, name: x.name })
+        )
+      )
     )
   );
 
-  mount(root, App);
+  let redraw = mount(root, App);
+  // setTimeout(() => {
+  //   redraw()
+  // }, 2000);
   // debug(App());
 }
 

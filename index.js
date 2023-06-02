@@ -14,7 +14,7 @@ let NIL = void 0,
   addChildren = (x, children) => {
     if (isArray(x)) for (let i = 0; i < x.length; i++) addChildren(x[i], children);
     else if (isStr(x) || typeof x === 'number') children.push({ type: TEXT, tag: x });
-    else if (x !== null && x !== false && x !== NIL) children.push(x);
+    else children.push(x);
   },
   map = REDRAWS.map;
 
@@ -56,7 +56,7 @@ let normalizeVnode = (vnode, oldVNode) => {
       existing.set(id, vnode.tag);
       if (!STATEFUL.has(vnode.fn)) STATEFUL.set(vnode.fn, existing);
 
-      _vnode = { id, ...vnode, ...vnode.tag(vnode.props, vnode.children) };
+      _vnode = { id, ...vnode, ...vnode.tag(vnode.props, vnode.children), key: vnode.key };
       return _vnode;
     }
 
@@ -125,7 +125,16 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
     )
 
     // if the oldVnode did exist, make sure to remove its real node from the real DOM
-    if (oldVNode != null) parent.removeChild(oldVNode.node)
+    if (oldVNode != null) {
+      parent.removeChild(oldVNode.node);
+
+      // if it's a stateful component, clean up
+      if (oldVNode.fn !== NIL) {
+        let existing = STATEFUL.get(oldVNode.fn);
+        existing.delete(oldVNode.id);
+        if (existing.size === 0) STATEFUL.delete(oldVNode.fn);
+      }
+    }
   } else {
     let i,
       tmpVKid,
@@ -204,8 +213,6 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
         )),
         env
       );
-
-      oldTail--;
     }
 
     if (oldHead > oldTail) {

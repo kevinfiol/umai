@@ -119,7 +119,7 @@ var createNode = (vdom, listener, isSvg) => {
 }
 
 var patch = (parent, node, oldVNode, newVNode, listener, isSvg) => {
-  // debugger;
+  debugger;
   if (oldVNode === newVNode) {
   } else if (
     oldVNode != null &&
