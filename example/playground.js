@@ -58,6 +58,7 @@ export function runHyperApp() {
 
 export function runUmaiApp() {
   let count = 0;
+  let filtered = [...xs];
 
   const Third = (_, children) => (
     m('span',
@@ -100,15 +101,24 @@ export function runUmaiApp() {
     m('button', { onclick: () => count += 1 }, 'inc')
   );
 
+  const ListItem = ({ name }) => (
+    m('li', name)
+  );
+
+  let value = '';
+
   const App = () => (
     m('div.monospace',
       m('h1', { class: 'sans-serif' }, 'sup'),
-      m('p',
-        m('span', count),
-        count % 2 === 0 &&
-          m('p', 'should disappear')
-        ,
-        m(Button)
+      m('input', { value, oninput: (ev) => {
+        value = ev.target.value;
+        filtered = xs.filter(x => x.name.indexOf(value) > -1)
+      } }),
+
+      m('ul',
+        filtered.map(x =>
+          m(ListItem, { key: x.name, name: x.name })
+        )
       )
     )
   );

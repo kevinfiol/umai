@@ -39,11 +39,14 @@ let normalizeVnode = vnode =>
     ? vnode
     : { type: TEXT, tag: '' };
 
-let unpackComponent = vnode => {
+let unpackComponent = (vnode) => {
   let fn = vnode.tag,
-    childVnode = fn(vnode.props, vnode.children);
+    key = vnode.key;
 
-  while (childVnode.type === COMPONENT) {
+  vnode = fn(vnode.props, vnode.children);
+  vnode.key = key;
+
+  while (vnode.type === COMPONENT) {
     // how do you know when you've run into the same closure comopnent again?
     // and thus, how do you know which renderFn to call (or whether to create a new one)?
 
@@ -57,11 +60,13 @@ let unpackComponent = vnode => {
     //   // closure component
     //   CLOSURES.set(htmlVnode, fn); // renderFn -> outerFn
     // }
-    fn = childVnode.tag;
-    childVnode = childVnode.tag(childVnode.props, childVnode.children);
+    fn = vnode.tag;
+    key = vnode.key;
+    vnode = vnode.tag(vnode.props, vnode.children);
+    vnode.key = key;
   }
 
-  return childVnode;
+  return vnode;
 };
 
 let createNode = (vnode, env) => {
@@ -86,7 +91,7 @@ let createNode = (vnode, env) => {
 };
 
 let patch = (parent, node, oldVNode, newVNode, env) => {
-  // debugger;
+  debugger;
   if (oldVNode === newVNode) {
   } else if (oldVNode != null && oldVNode.type === TEXT && newVNode.type === TEXT) {
     // they are both text nodes
@@ -241,9 +246,9 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
           continue;
         }
 
-        // otherwise, if the new child is keyless, and the oldVNode is not a text node
+        // otherwise, if the new child is keyless, and the oldVNode is an element vnode
         // (remember, this is not a child, oldVNode is the PARENT during this call of patch)
-        if (newKey == null || oldVNode.type !== TEXT) {
+        if (newKey == null || oldVNode.type === ELEMENT) {
           if (oldKey == null) {
             patch(
               node,
@@ -345,13 +350,13 @@ export const redraw = _ => {
 
 /** @type {import('./index.d.ts').m} **/
 export function m(tag, ...tail) {
-  let vnode, k, tmp, classes,
+  let vnode, key, i, tmp, classes,
     type = isFn(tag) ? COMPONENT : ELEMENT,
     props = {},
     children = [];
 
   if (tail.length && !isRenderable(tail[0]))
-    [props, ...tail] = tail;
+    [{ key, ...props }, ...tail] = tail;
 
   if (isStr(tag)) {
     [tag, ...classes] = tag.split('.');
@@ -359,10 +364,10 @@ export function m(tag, ...tail) {
     classes = classes.join(' ');
 
     if (isObj(tmp = props.class)) {
-      for (k in tmp) {
-        if (tmp[k]) {
+      for (i in tmp) {
+        if (tmp[i]) {
           if (classes) classes += ' ';
-          classes += k;
+          classes += i;
         }
       }
     }
@@ -372,7 +377,7 @@ export function m(tag, ...tail) {
   }
 
   addChildren(tail, children); // will recurse through tail and push valid childs to `children`
-  vnode = { type, tag, props: { ...props }, children };
+  vnode = { type, tag, key, props: { ...props }, children };
   return type === COMPONENT ? unpackComponent(vnode) : vnode;
 }
 
