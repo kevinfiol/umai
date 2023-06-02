@@ -119,7 +119,7 @@ var createNode = (vdom, listener, isSvg) => {
 }
 
 var patch = (parent, node, oldVNode, newVNode, listener, isSvg) => {
-  debugger;
+  // debugger;
   if (oldVNode === newVNode) {
   } else if (
     oldVNode != null &&
@@ -404,7 +404,7 @@ export var app = ({
   dispatch = id,
   init = EMPTY_OBJ,
 }) => {
-  debugger;
+  // debugger;
   var vdom = node && recycleNode(node)
   var subs = []
   var state

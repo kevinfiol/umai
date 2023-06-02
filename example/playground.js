@@ -96,7 +96,22 @@ export function runUmaiApp() {
   //   )
   // );
 
-  const App = () => m('div.monospace', 'hello');
+  const Button = () => (
+    m('button', { onclick: () => count += 1 }, 'inc')
+  );
+
+  const App = () => (
+    m('div.monospace',
+      m('h1', { class: 'sans-serif' }, 'sup'),
+      m('p',
+        m('span', count),
+        count % 2 === 0 &&
+          m('p', 'should disappear')
+        ,
+        m(Button)
+      )
+    )
+  );
 
   mount(root, App);
   debug(App());

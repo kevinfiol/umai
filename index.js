@@ -2,52 +2,21 @@ let NIL = void 0,
   COMPONENT = 2,
   ELEMENT = 1,
   TEXT = 3,
-  EMPTY_ARR = [],
   REDRAWS = [],
-  DOM_KEY = Symbol('umai'),
   RETAIN_KEY = '=',
   STATEFUL = new WeakMap,
   isArray = Array.isArray,
   isStr = x => typeof x === 'string',
   isFn = x => typeof x === 'function',
   isObj = x => x !== null && typeof x === 'object',
-  noop = _ => {},
   isRenderable = x => x === null || typeof x === 'string' || typeof x === 'number' || x.type || isArray(x),
-  makeEl = v => v.tag ? document.createElement(v.tag) : document.createTextNode(v),
   getKey = v => v == null ? v : v.key,
   addChildren = (x, children) => {
     if (isArray(x)) for (let i = 0; i < x.length; i++) addChildren(x[i], children);
-    else if (isStr(x)) children.push({ type: TEXT, tag: x });
+    else if (isStr(x) || typeof x === 'number') children.push({ type: TEXT, tag: x });
     else if (x !== null && x !== false && x !== NIL) children.push(x);
   },
-  map = EMPTY_ARR.map;
-
-let renderComponent = vnode => {
-  let fn = vnode.tag,
-    htmlVnode = fn(vnode.props, vnode.children);
-
-  while (htmlVnode.type !== 1) {
-    // how do you know when you've run into the same closure comopnent again?
-    // and thus, how do you know which renderFn to call (or whether to create a new one)?
-
-    // if (isFn(htmlVnode)) {
-    //   let id = 1,
-    //    existing = STATEFUL.get(fn) || new Map;
-
-    //   while (existing.has(id)) id++;
-    //   existing.set(id, htmlVnode);
-
-    //   // closure component
-    //   CLOSURES.set(htmlVnode, fn); // renderFn -> outerFn
-    // }
-
-    // if the type is not 1, that means we have nested component vnode
-    fn = htmlVnode.tag;
-    htmlVnode = htmlVnode.tag(htmlVnode.props, htmlVnode.children);
-  }
-
-  return htmlVnode;
-};
+  map = REDRAWS.map;
 
 let patchProp = (node, name, newProp, { redraw }) => {
   if (name in node) {
@@ -70,29 +39,54 @@ let normalizeVnode = vnode =>
     ? vnode
     : { type: TEXT, tag: '' };
 
-let createNode = (vnode, env) => {
-  if (vnode.type === TEXT)
-    return document.createTextNode(vnode.tag);
+let unpackComponent = vnode => {
+  let fn = vnode.tag,
+    childVnode = fn(vnode.props, vnode.children);
 
-  let i, len,
+  while (childVnode.type === COMPONENT) {
+    // how do you know when you've run into the same closure comopnent again?
+    // and thus, how do you know which renderFn to call (or whether to create a new one)?
+
+    // if (isFn(htmlVnode)) {
+    //   let id = 1,
+    //    existing = STATEFUL.get(fn) || new Map;
+
+    //   while (existing.has(id)) id++;
+    //   existing.set(id, htmlVnode);
+
+    //   // closure component
+    //   CLOSURES.set(htmlVnode, fn); // renderFn -> outerFn
+    // }
+    fn = childVnode.tag;
+    childVnode = childVnode.tag(childVnode.props, childVnode.children);
+  }
+
+  return childVnode;
+};
+
+let createNode = (vnode, env) => {
+  let i,
     props = vnode.props,
-    node = document.createElement(vnode.tag);
+    node = vnode.type === TEXT
+      ? document.createTextNode(vnode.tag)
+      : document.createElement(vnode.tag);
 
   for (i in props) patchProp(node, i, props[i], env);
 
-  for (i = 0, len = vnode.children.length; i < len; i++)
-    node.appendChild(
-      createNode(
-        (vnode.children[i] = normalizeVnode(vnode.children[i])),
-        env
-      )
-    );
+  if (vnode.type !== TEXT)
+    for (i = 0; i < vnode.children.length; i++)
+      node.appendChild(
+        createNode(
+          (vnode.children[i] = normalizeVnode(vnode.children[i])),
+          env
+        )
+      );
 
   return (vnode.node = node);
 };
 
 let patch = (parent, node, oldVNode, newVNode, env) => {
-  debugger;
+  // debugger;
   if (oldVNode === newVNode) {
   } else if (oldVNode != null && oldVNode.type === TEXT && newVNode.type === TEXT) {
     // they are both text nodes
@@ -133,7 +127,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
           ? node[i]
           : oldProps[i]) !== newProps[i]
       ) {
-        patchProp(node, i, newProps[i], env)
+        patchProp(node, i, newProps[i], env);
       }
     }
 
@@ -300,6 +294,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
         }
       }
 
+      // debugger;
       while (oldHead <= oldTail) {
         if (getKey((oldVKid = oldVKids[oldHead++])) == null) {
           node.removeChild(oldVKid.node);
@@ -314,6 +309,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
     }
   }
 
+  console.log(oldVNode);
   return (newVNode.node = node);
 }
 
@@ -324,6 +320,9 @@ let convertNode = node =>
     : { node, ...m(node.nodeName.toLowerCase(), map.call(node.childNodes, convertNode)) };
 
 export function mount(node, view) {
+  node.innerHTML = '<div></div>';
+  node = node.lastChild;
+
   let env = {},
     dom = convertNode(node),
     draw = _ =>
@@ -346,7 +345,7 @@ export const redraw = _ => {
 
 /** @type {import('./index.d.ts').m} **/
 export function m(tag, ...tail) {
-  let k, tmp, classes,
+  let vnode, k, tmp, classes,
     type = isFn(tag) ? COMPONENT : ELEMENT,
     props = {},
     children = [];
@@ -373,7 +372,8 @@ export function m(tag, ...tail) {
   }
 
   addChildren(tail, children); // will recurse through tail and push valid childs to `children`
-  return { type, tag, props: { ...props }, children };
+  vnode = { type, tag, props: { ...props }, children };
+  return type === COMPONENT ? unpackComponent(vnode) : vnode;
 }
 
 m.retain = _ => m(RETAIN_KEY);
