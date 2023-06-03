@@ -15,8 +15,7 @@ let NIL = void 0,
     if (isArray(x)) for (let i = 0; i < x.length; i++) addChildren(x[i], children);
     else if (isStr(x) || typeof x === 'number') children.push({ type: TEXT, tag: x });
     else children.push(x);
-  },
-  map = REDRAWS.map;
+  };
 
 let patchProp = (node, name, newProp, { redraw }) => {
   if (name in node) {
@@ -49,8 +48,9 @@ let normalizeVnode = (vnode, oldVNode) => {
       };
     } else if (vnode.fn !== NIL && isFn(vnode.tag)) {
       // vnode.tag is the renderFn
-      let _vnode, id, existing = STATEFUL.get(vnode.fn) || new Map;
-      id = 1;
+      let _vnode,
+        id = 1,
+        existing = STATEFUL.get(vnode.fn) || new Map;
 
       while (existing.has(id)) id++;
       existing.set(id, vnode.tag);
@@ -67,7 +67,7 @@ let normalizeVnode = (vnode, oldVNode) => {
 }
 
 let unpackComponent = (vnode) => {
-  debugger;
+  // debugger;
   let last, fn, id, key, props, children;
 
   while (!vnode.type || vnode.type === COMPONENT) {
@@ -108,8 +108,20 @@ let createNode = (vnode, env) => {
   return (vnode.node = node);
 };
 
+let removeChild = (parent, vnode) => {
+  parent.removeChild(vnode.node);
+
+  // if it's a stateful component, clean up
+  if (vnode.fn !== NIL) {
+    debugger;
+    let existing = STATEFUL.get(vnode.fn);
+    existing.delete(vnode.id);
+    if (existing.size === 0) STATEFUL.delete(vnode.fn);
+  }
+};
+
 let patch = (parent, node, oldVNode, newVNode, env) => {
-  debugger;
+  // debugger;
   if (oldVNode === newVNode) {
   } else if (oldVNode != null && oldVNode.type === TEXT && newVNode.type === TEXT) {
     // they are both text nodes
@@ -125,16 +137,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
     )
 
     // if the oldVnode did exist, make sure to remove its real node from the real DOM
-    if (oldVNode != null) {
-      parent.removeChild(oldVNode.node);
-
-      // if it's a stateful component, clean up
-      if (oldVNode.fn !== NIL) {
-        let existing = STATEFUL.get(oldVNode.fn);
-        existing.delete(oldVNode.id);
-        if (existing.size === 0) STATEFUL.delete(oldVNode.fn);
-      }
-    }
+    if (oldVNode != null) removeChild(parent, oldVNode);
   } else {
     let i,
       tmpVKid,
@@ -227,7 +230,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
       }
     } else if (newHead > newTail) {
       while (oldHead <= oldTail) {
-        node.removeChild(oldVKids[oldHead++].node);
+        removeChild(node, oldVKids[oldHead++]);
       }
     } else {
       // grab all the old keys from the old children
@@ -264,7 +267,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
           // then you can remove the old child at the current oldHead index
           // assuming it's key is null or undefined
           if (oldKey == null) {
-            node.removeChild(oldVKid.node);
+            removeChild(node, oldVKid);
           }
           // then increment oldHead and go to next iteration
           oldHead++;
@@ -327,19 +330,18 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
       // debugger;
       while (oldHead <= oldTail) {
         if (getKey((oldVKid = oldVKids[oldHead++])) == null) {
-          node.removeChild(oldVKid.node);
+          removeChild(node, oldVKid);
         }
       }
 
       for (let i in keyed) {
         if (newKeyed[i] == null) {
-          node.removeChild(keyed[i].node);
+          removeChild(node, keyed[i]);
         }
       }
     }
   }
 
-  console.log({ oldVNode, newVNode });
   return (newVNode.node = node);
 }
 

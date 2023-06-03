@@ -42,7 +42,7 @@ const App = () => (
 
     m('table',
       data.map((row) =>
-        m('tr', { style: selected === row.id ? 'background-color:red;' : '' },
+        m('tr', { key: row.id, style: selected === row.id ? 'background-color:red;' : '' },
           m('td', row.id),
           m('td', m('button', { onclick: () => selected = row.id }, row.label.get())),
           m('td', m('button', { onclick: () => remove(row.id) }, 'remove'))

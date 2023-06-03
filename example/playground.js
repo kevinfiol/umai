@@ -81,10 +81,11 @@ export function runUmaiApp() {
   const Counter = () => {
     let count = 0;
 
-    return () => (
+    return (_props, children) => (
       m('div.counter',
         m('h2', count),
-        m('button', { onclick: () => count += 1 }, 'inc')
+        m('button', { onclick: () => count += 1 }, 'inc'),
+        children
       )
     )
   };
@@ -120,9 +121,9 @@ export function runUmaiApp() {
     m('div.monospace',
       m('h1', { class: 'sans-serif' }, 'sup'),
 
-      value !== 'r' &&
-        m('p', 'remove me')
-      ,
+      // value !== 'r' &&
+      //   m('p', 'remove me')
+      // ,
 
       m('input', { value, oninput: (ev) => {
         value = ev.target.value;
@@ -131,7 +132,7 @@ export function runUmaiApp() {
 
       m('ul',
         filtered.map(x =>
-          m(ListItem, { key: x.name, name: x.name })
+          m(Counter, { key: x.name }, m('p', x.name))
         )
       )
     )
