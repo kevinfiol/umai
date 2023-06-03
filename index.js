@@ -33,7 +33,29 @@ let patchProp = (node, name, newProp, { redraw }) => {
   }
 };
 
+let unpackComponent = (vnode) => {
+  // debugger;
+  let last, fn, id, key, props, children;
+
+  while (!vnode.type || vnode.type === COMPONENT) {
+    if (isFn(vnode))
+      return { ...last, fn, tag: vnode };
+
+    last = vnode;
+    fn = vnode.tag;
+    key = vnode.key || key;
+    id = vnode.id || id;
+    props = vnode.props;
+    children = vnode.children;
+    vnode = fn(props, children);
+  }
+
+  vnode.key = key;
+  return vnode;
+};
+
 let normalizeVnode = (vnode, oldVNode) => {
+  // debugger;
   if (vnode !== true && vnode !== false && vnode) {
     // stateful component logic goes here OR NOT
     if (oldVNode && oldVNode.id !== NIL && isFn(vnode.tag) && oldVNode.fn === vnode.fn) {
@@ -57,7 +79,9 @@ let normalizeVnode = (vnode, oldVNode) => {
       if (!STATEFUL.has(vnode.fn)) STATEFUL.set(vnode.fn, existing);
 
       _vnode = { id, ...vnode, ...vnode.tag(vnode.props, vnode.children), key: vnode.key };
-      return _vnode;
+      return normalizeVnode(_vnode);
+    } else if (vnode.type === COMPONENT) {
+      return normalizeVnode(unpackComponent(vnode));
     }
 
     return vnode;
@@ -65,27 +89,6 @@ let normalizeVnode = (vnode, oldVNode) => {
 
   return { type: TEXT, tag: '' };
 }
-
-let unpackComponent = (vnode) => {
-  // debugger;
-  let last, fn, id, key, props, children;
-
-  while (!vnode.type || vnode.type === COMPONENT) {
-    if (isFn(vnode))
-      return { ...last, fn, tag: vnode };
-
-    last = vnode;
-    fn = vnode.tag;
-    key = vnode.key || key;
-    id = vnode.id || id;
-    props = vnode.props;
-    children = vnode.children;
-    vnode = fn(props, children);
-  }
-
-  vnode.key = key;
-  return vnode;
-};
 
 let createNode = (vnode, env) => {
   let i,
@@ -113,7 +116,7 @@ let removeChild = (parent, vnode) => {
 
   // if it's a stateful component, clean up
   if (vnode.fn !== NIL) {
-    debugger;
+    // debugger;
     let existing = STATEFUL.get(vnode.fn);
     existing.delete(vnode.id);
     if (existing.size === 0) STATEFUL.delete(vnode.fn);
@@ -330,12 +333,14 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
       // debugger;
       while (oldHead <= oldTail) {
         if (getKey((oldVKid = oldVKids[oldHead++])) == null) {
+          // debugger;
           removeChild(node, oldVKid);
         }
       }
 
       for (let i in keyed) {
         if (newKeyed[i] == null) {
+          // debugger;
           removeChild(node, keyed[i]);
         }
       }
