@@ -33,11 +33,10 @@ let patchProp = (node, name, newProp, { redraw }) => {
   }
 };
 
-let unpackComponent = (vnode) => {
-  // debugger;
+let unpackComponent = vnode => {
   let last, fn, id, key, props, children;
 
-  while (!vnode.type || vnode.type === COMPONENT) {
+  while (isFn(vnode) || vnode.type === COMPONENT) {
     if (isFn(vnode))
       return { ...last, fn, tag: vnode };
 
@@ -55,31 +54,24 @@ let unpackComponent = (vnode) => {
 };
 
 let normalizeVnode = (vnode, oldVNode) => {
-  // debugger;
   if (vnode !== true && vnode !== false && vnode) {
     // stateful component logic goes here OR NOT
-    if (oldVNode && oldVNode.id !== NIL && isFn(vnode.tag) && oldVNode.fn === vnode.fn) {
-      // get the render fn
-      let existing = STATEFUL.get(vnode.fn);
-      let renderFn = existing.get(oldVNode.id);
-      // overwrite newVnode
+    if (oldVNode && isFn(vnode.tag) && oldVNode.fn === vnode.fn && vnode.key === oldVNode.key) {
+      let renderFn = STATEFUL.get(oldVNode.node);
+
       return {
         ...oldVNode,
         ...vnode,
-        ...renderFn(vnode.props, vnode.children)
+        ...renderFn(vnode.props, vnode.children),
+        key: vnode.key
       };
-    } else if (vnode.fn !== NIL && isFn(vnode.tag)) {
-      // vnode.tag is the renderFn
-      let _vnode,
-        id = 1,
-        existing = STATEFUL.get(vnode.fn) || new Map;
-
-      while (existing.has(id)) id++;
-      existing.set(id, vnode.tag);
-      if (!STATEFUL.has(vnode.fn)) STATEFUL.set(vnode.fn, existing);
-
-      _vnode = { id, ...vnode, ...vnode.tag(vnode.props, vnode.children), key: vnode.key };
-      return normalizeVnode(_vnode);
+    } else if (isFn(vnode.fn) && isFn(vnode.tag)) {
+      return {
+        ...vnode,
+        ...vnode.tag(vnode.props, vnode.children),
+        renderFn: vnode.tag,
+        key: vnode.key
+      };
     } else if (vnode.type === COMPONENT) {
       return normalizeVnode(unpackComponent(vnode));
     }
@@ -108,6 +100,10 @@ let createNode = (vnode, env) => {
         )
       );
 
+  if (isFn(vnode.renderFn)) {
+    STATEFUL.set(node, vnode.renderFn);
+  }
+
   return (vnode.node = node);
 };
 
@@ -115,16 +111,12 @@ let removeChild = (parent, vnode) => {
   parent.removeChild(vnode.node);
 
   // if it's a stateful component, clean up
-  if (vnode.fn !== NIL) {
-    // debugger;
-    let existing = STATEFUL.get(vnode.fn);
-    existing.delete(vnode.id);
-    if (existing.size === 0) STATEFUL.delete(vnode.fn);
+  if (isFn(vnode.fn)) {
+    STATEFUL.delete(vnode.node);
   }
 };
 
 let patch = (parent, node, oldVNode, newVNode, env) => {
-  // debugger;
   if (oldVNode === newVNode) {
   } else if (oldVNode != null && oldVNode.type === TEXT && newVNode.type === TEXT) {
     // they are both text nodes
@@ -330,17 +322,14 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
         }
       }
 
-      // debugger;
       while (oldHead <= oldTail) {
         if (getKey((oldVKid = oldVKids[oldHead++])) == null) {
-          // debugger;
           removeChild(node, oldVKid);
         }
       }
 
       for (let i in keyed) {
         if (newKeyed[i] == null) {
-          // debugger;
           removeChild(node, keyed[i]);
         }
       }
@@ -351,7 +340,6 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
 }
 
 export function mount(node, view) {
-  // debugger;
   node.innerHTML = '<a></a>';
   node = node.lastChild;
 
@@ -377,7 +365,6 @@ export const redraw = _ => {
 
 /** @type {import('./index.d.ts').m} **/
 export function m(tag, ...tail) {
-  // debugger;
   let vnode, key, i, tmp, classes,
     type = isFn(tag) ? COMPONENT : ELEMENT,
     props = {},

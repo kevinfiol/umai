@@ -1,4 +1,5 @@
 import { m, mount } from '../index.js';
+// import { m, umount as mount } from './closures.js';
 import { h, app, text } from './hyperapp.js';
 
 const root = document.getElementById('app');
@@ -81,11 +82,11 @@ export function runUmaiApp() {
   const Counter = () => {
     let count = 0;
 
-    return (_props, children) => (
+    return (props) => (
       m('div.counter',
         m('h2', count),
         m('button', { onclick: () => count += 1 }, 'inc'),
-        children
+        m('p', props.name)
       )
     )
   };
@@ -119,7 +120,7 @@ export function runUmaiApp() {
 
   const App = () => (
     m('div.monospace',
-      m('h1', { class: 'sans-serif' }, 'sup'),
+      // m('h1', { class: 'sans-serif' }, 'sup'),
 
       // value !== 'r' &&
       //   m('p', 'remove me')
@@ -132,7 +133,8 @@ export function runUmaiApp() {
 
       m('ul',
         filtered.map(x =>
-          m(Counter, { key: x.name }, m('p', x.name))
+          // m('p', { key: x.name }, x.name)
+          m(Counter, { name: x.name })
         )
       )
     )
