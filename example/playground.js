@@ -134,7 +134,7 @@ export function runUmaiApp() {
       m('ul',
         filtered.map(x =>
           // m('p', { key: x.name }, x.name)
-          m(Counter, { name: x.name })
+          m(Counter, { key: x.name, name: x.name })
         )
       )
     )

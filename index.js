@@ -34,19 +34,23 @@ let patchProp = (node, name, newProp, { redraw }) => {
 };
 
 let unpackComponent = vnode => {
-  let last, fn, id, key, props, children;
+  let last,
+    vnodeIsFn,
+    fn,
+    key;
 
-  while (isFn(vnode) || vnode.type === COMPONENT) {
-    if (isFn(vnode))
-      return { ...last, fn, tag: vnode };
+  while ((vnodeIsFn = isFn(vnode)) || vnode.type === COMPONENT) {
+    if (vnodeIsFn)
+      return {
+        ...last, // spread the vnode propertiess
+        fn, // the outer function / closure component
+        tag: vnode // the render function
+      };
 
     last = vnode;
     fn = vnode.tag;
     key = vnode.key || key;
-    id = vnode.id || id;
-    props = vnode.props;
-    children = vnode.children;
-    vnode = fn(props, children);
+    vnode = fn(vnode.props, vnode.children);
   }
 
   vnode.key = key;
