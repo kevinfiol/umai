@@ -9,7 +9,7 @@ let NIL = void 0,
   isStr = x => typeof x === 'string',
   isFn = x => typeof x === 'function',
   isObj = x => x !== null && typeof x === 'object',
-  isRenderable = x => x === null || typeof x === 'string' || typeof x === 'number' || x.type || isArray(x),
+  isRenderable = x => x == null || typeof x === 'string' || typeof x === 'number' || x.type || isArray(x),
   getKey = v => v == null ? v : v.key,
   addChildren = (x, children) => {
     if (isArray(x)) for (let i = 0; i < x.length; i++) addChildren(x[i], children);
@@ -63,19 +63,20 @@ let normalizeVnode = (vnode, oldVNode) => {
     if (oldVNode && isFn(vnode.tag) && oldVNode.fn === vnode.fn && vnode.key === oldVNode.key) {
       let renderFn = STATEFUL.get(oldVNode.node);
 
-      return {
+      return normalizeVnode({
         ...oldVNode,
         ...vnode,
         ...renderFn(vnode.props, vnode.children),
         key: vnode.key
-      };
+      });
     } else if (isFn(vnode.fn) && isFn(vnode.tag)) {
-      return {
+      return normalizeVnode({
         ...vnode,
         ...vnode.tag(vnode.props, vnode.children),
         renderFn: vnode.tag,
-        key: vnode.key
-      };
+        key: vnode.key,
+        fn: vnode.fn
+      });
     } else if (vnode.type === COMPONENT) {
       return normalizeVnode(unpackComponent(vnode));
     }

@@ -1,6 +1,6 @@
 import { m, mount } from '../index.js';
 // import { m, umount as mount } from './closures.js';
-import { h, app, text } from './hyperapp.js';
+// import { h, app, text } from './hyperapp.js';
 
 const root = document.getElementById('app');
 
@@ -60,54 +60,31 @@ export function runHyperApp() {
 }
 
 export function runUmaiApp() {
+  let value = '';
   let count = 0;
   let filtered = [...xs];
 
-  // const Third = (_, children) => (
-  //   m('span',
-  //     m('h2', 'Counter: ', count),
-  //     m('button', { onclick: () => count += 1 }, 'increment'),
-  //     children
-  //   )
-  // )
+  const SubCounter = ({ count, name, onClick }) => (
+    m('div.counter',
+      m('h2', count),
+      m('button', { onclick: onClick }, 'inc'),
+      m('p', name)
+    )
+  );
 
-  // const SubCounter = () => (
-  //   m(Third, m('h3', 'an h3'))
-  // )
+  const StatefulSubCounter = ({ onClick }) => {
+    let statefulCount = 1;
 
-  // const Counter = () => (
-  //   m(SubCounter)
-  // );
-
-  const Counter = () => {
-    let count = 0;
-
-    return (props) => (
+    return ({ count, name }) => (
       m('div.counter',
         m('h2', count),
-        m('button', { onclick: () => count += 1 }, 'inc'),
-        m('p', props.name)
+        m('h3', `stateful count: ${statefulCount}`),
+        m('button', { onclick: onClick }, 'inc'),
+        m('button', { onclick: () => statefulCount += 1 }, 'inc stateful'),
+        m('p', name)
       )
-    )
+    );
   };
-
-  // const App = () => (
-  //   m('div.monospace',
-  //     m('h1', { class: 'sans-serif' }, 'hello'),
-  //     m('p',
-  //       m('span', 'in the p')
-  //     )
-  //     // m(Counter)
-  //   )
-  // );
-
-  const Button = () => (
-    m('button', { onclick: () => count += 1 }, 'inc')
-  );
-
-  const ListItem = ({ name }) => (
-    m('li', name)
-  );
 
   const PureCounter = () => (
     m('div.counter',
@@ -116,7 +93,22 @@ export function runUmaiApp() {
     )
   );
 
-  let value = '';
+  const Counter = () => {
+    let count = 14;
+
+    return (props) => (
+      m(StatefulSubCounter, {
+        count,
+        name: props.name,
+        onClick: () => count += 1
+      })
+      // m('div.counter',
+      //   m('h2', count),
+      //   m('button', { onclick: () => count += 1 }, 'inc'),
+      //   m('p', props.name)
+      // )
+    )
+  };
 
   const App = () => (
     m('div.monospace',
@@ -140,11 +132,7 @@ export function runUmaiApp() {
     )
   );
 
-  let redraw = mount(root, App);
-  // setTimeout(() => {
-  //   redraw()
-  // }, 2000);
-  // debug(App());
+  mount(root, App);
 }
 
 function debug(tree) {
