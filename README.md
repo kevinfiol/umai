@@ -1,6 +1,10 @@
 # umai
 
-Small UI lib.
+A small UI library.
+
+`umai` leverages the highly optimized diff algorithm of [hyperapp](https://github.com/jorgebucaran/hyperapp), and provides an ergonomic API for creating stateless or stateful UIs that will be familiar to users of [Mithril.js](https://github.com/MithrilJS/mithril.js) or React.
+
+## Install
 
 ```
 npm install umai
