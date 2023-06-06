@@ -1,5 +1,10 @@
-<!doctype html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>example</title>
     <style>
         body {
             background-color: #1c1c1c;
@@ -16,13 +21,16 @@
         <div>removed</div>
     </div>
     <div id="vnode">
-        
     </div>
+
+    <script src="./example/mithril.js"></script>
+    <script type="module">
+        // import { runApp } from './example/bench/app.js';
+        import { runUmaiApp, runHyperApp, runMithrilApp } from './example/playground.js';
+        // runUmaiApp();
+        // runHyperApp();
+        // runApp();
+        runMithrilApp();
+    </script>
 </body>
-<script type="module">
-    // import { runApp } from './example/bench/app.js';
-    import { runUmaiApp, runHyperApp } from './example/playground.js';
-    runUmaiApp();
-    // runHyperApp();
-    // runApp();
-</script>
+</html>

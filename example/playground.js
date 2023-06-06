@@ -1,4 +1,4 @@
-import { m, mount } from '../index.js';
+// import { m, mount } from '../index.js';
 // import { m, umount as mount } from './closures.js';
 // import { h, app, text } from './hyperapp.js';
 
@@ -133,6 +133,60 @@ export function runUmaiApp() {
   );
 
   mount(root, App);
+}
+
+export function runMithrilApp() {
+  let value = '';
+  let count = 0;
+  let filtered = [...xs];
+
+  const StatefulSubCounter = ({ attrs: { onClick } }) => {
+    let statefulCount = 1;
+
+    return {
+      view: ({ attrs: { count, name } }) => (
+        m('div.counter',
+          m('h2', count),
+          m('h3', `stateful count: ${statefulCount}`),
+          m('button', { onclick: onClick }, 'inc'),
+          m('button', { onclick: () => statefulCount += 1 }, 'inc stateful'),
+          m('p', name)
+        )
+      )
+    };
+  }
+
+  const Counter = () => {
+    let count = 14;
+
+    return {
+      view: ({ attrs }) => (
+        m(StatefulSubCounter, {
+          count,
+          name: attrs.name,
+          onClick: () => count += 1
+        })
+      )
+    };
+  };
+
+  const App = () => (
+    m('div.monospace',
+      m('input', { value, oninput: (ev) => {
+        value = ev.target.value;
+        filtered = xs.filter(x => x.name.indexOf(value) > -1)
+      } }),
+
+      m('ul',
+        filtered.map(x =>
+          // m('p', { key: x.name }, x.name)
+          m(Counter, { key: x.name, name: x.name })
+        )
+      )
+    )
+  );
+
+  m.mount(root, { view: App })
 }
 
 function debug(tree) {
