@@ -74,16 +74,18 @@ export function runUmaiApp() {
 
   const StatefulSubCounter = ({ onClick }) => {
     let statefulCount = 1;
+    console.log('mount StatefulSubCounter');
 
-    return ({ count, name }) => (
-      m('div.counter',
+    return ({ count, name }) => {
+      console.log('run StatefulSubCounter render', { statefulCount, count, name });
+      return m('div.counter',
         m('h2', count),
         m('h3', `stateful count: ${statefulCount}`),
         m('button', { onclick: onClick }, 'inc'),
         m('button', { onclick: () => statefulCount += 1 }, 'inc stateful'),
         m('p', name)
       )
-    );
+    };
   };
 
   const PureCounter = () => (
@@ -95,36 +97,39 @@ export function runUmaiApp() {
 
   const Counter = () => {
     let count = 14;
+    console.log('mount Counter');
 
-    return (props) => (
-      // m(StatefulSubCounter, {
-      //   count,
-      //   name: props.name,
-      //   onClick: () => count += 1
-      // })
-      m('div.counter',
-        m('h2', count),
-        m('button', { onclick: () => count += 1 }, 'inc'),
-        m('p', props.name)
-      )
-    )
+    return (props) => {
+      console.log('run Counter render', { name: props.name, count });
+      return m(StatefulSubCounter, {
+        count,
+        name: props.name,
+        onClick: () => count += 1
+      })
+      // m('div.counter',
+      //   m('h2', count),
+      //   m('button', { onclick: () => count += 1 }, 'inc'),
+      //   m('p', props.name)
+      // )
+    }
   };
 
   const App = () => (
     m('div.monospace',
+      m(Counter, { name: 'kevin' })
       // m('h1', { class: 'sans-serif' }, 'sup'),
 
       // value !== 'r' &&
       //   m('p', 'remove me')
       // ,
 
-      // m('input', { value, oninput: (ev) => {
-      //   value = ev.target.value;
-      //   filtered = xs.filter(x => x.name.indexOf(value) > -1)
-      // } }),
+      m('input', { value, oninput: (ev) => {
+        value = ev.target.value;
+        filtered = xs.filter(x => x.name.indexOf(value) > -1)
+      } }),
 
-      // m(PureCounter),
-      m(Counter, { name: 'kevin' })
+      // // m(PureCounter),
+      // // m(Counter, { key: 'test', name: 'kevin' })
 
       // m('ul',
       //   filtered.map(x =>

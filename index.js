@@ -4,7 +4,6 @@ let NIL = void 0,
   TEXT = 3,
   REDRAWS = [],
   RETAIN_KEY = '=',
-  STATEFUL = new WeakMap,
   isArray = Array.isArray,
   isStr = x => typeof x === 'string',
   isFn = x => typeof x === 'function',
@@ -33,62 +32,10 @@ let patchProp = (node, name, newProp, { redraw }) => {
   }
 };
 
-let unpackComponent = vnode => {
-  let last,
-    vnodeIsFn,
-    fn,
-    key;
-
-  while ((vnodeIsFn = isFn(vnode)) || vnode.type === COMPONENT) {
-    if (vnodeIsFn)
-      return {
-        ...last, // spread the vnode propertiess
-        fn, // the outer function / closure component
-        tag: vnode // the render function
-      };
-
-    last = vnode;
-    fn = vnode.tag;
-    key = vnode.key || key;
-    vnode = fn(vnode.props, vnode.children);
-  }
-
-  vnode.key = key;
-  return vnode;
-};
-
-let normalizeVnode = (vnode, oldVNode) => {
-  if (vnode !== true && vnode !== false && vnode) {
-    // stateful component logic goes here OR NOT
-    // if (oldVNode && isFn(vnode.tag) && oldVNode.fn === vnode.fn && vnode.key === oldVNode.key) {
-    //   let renderFn = STATEFUL.get(oldVNode.node);
-
-    //   return normalizeVnode({
-    //     ...oldVNode,
-    //     ...vnode,
-    //     ...renderFn(vnode.props, vnode.children),
-    //     key: vnode.key
-    //   });
-    // } else if (isFn(vnode.fn) && isFn(vnode.tag)) {
-    //   return normalizeVnode({
-    //     ...vnode,
-    //     ...vnode.tag(vnode.props, vnode.children),
-    //     renderFn: vnode.tag,
-    //     key: vnode.key,
-    //     fn: vnode.fn
-    //   });
-    // } else if (vnode.type === COMPONENT) {
-    //   return normalizeVnode(unpackComponent(vnode));
-    // }
-
-    // if (vnode.type === COMPONENT)
-    //   return normalizeVnode(unpackComponent(vnode));
-
-    return vnode;
-  }
-
-  return { type: TEXT, tag: '' };
-}
+let normalizeVnode = vnode => 
+  vnode !== true && vnode !== false && vnode
+    ? vnode
+    : { type: TEXT, tag: '' };
 
 let createComponent = (vnode, env) => {
   vnode.instance = vnode.tag(vnode.props, vnode.children);
@@ -96,6 +43,7 @@ let createComponent = (vnode, env) => {
   if (isFn(vnode.instance))
     vnode.instance = { ...vnode, tag: vnode.instance };
 
+  vnode.instance.key = vnode.key;
   return createNode(vnode.instance, env);
 };
 
@@ -144,14 +92,20 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
 
     // if the oldVnode did exist, make sure to remove its real node from the real DOM
     if (oldVNode != null) removeChild(parent, oldVNode);
-  } else if (oldVNode.type === COMPONENT && newVNode.type === COMPONENT && oldVNode.tag === newVNode.tag) {
-    let maybeInstance = oldVNode.instance;
-    if (isFn(maybeInstance.tag)) newVNode.instance = maybeInstance;
-    else maybeInstance = newVNode;
+  } else if (oldVNode.type === COMPONENT && oldVNode.tag === newVNode.tag) {
+    let fn = isFn(oldVNode.instance.tag)
+      ? (newVNode.instance = { ...oldVNode.instance }).tag
+      : newVNode.tag;
 
-    // should not createNode
-    newVNode.node = createNode(maybeInstance, env);
-    patch(parent, node, oldVNode.instance, newVNode.instance, env);
+    let _vnode = fn(newVNode.props, newVNode.children);
+    patch(parent, node, fn === newVNode.tag ? oldVNode.instance : oldVNode.instance.instance, _vnode, env);
+
+
+    // newVNode.instance = isFn(oldVNode.instance.tag)
+    //   ? { ...oldVNode.instance }
+    //   : { ...newVNode.tag(newVNode.props, newVNode.children), key: newVNode.key };
+
+    // patch(parent, node, oldVNode.instance, newVNode.instance, env);
   } else {
     let i,
       tmpVKid,
