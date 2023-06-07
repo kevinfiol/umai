@@ -60,26 +60,29 @@ let unpackComponent = vnode => {
 let normalizeVnode = (vnode, oldVNode) => {
   if (vnode !== true && vnode !== false && vnode) {
     // stateful component logic goes here OR NOT
-    if (oldVNode && isFn(vnode.tag) && oldVNode.fn === vnode.fn && vnode.key === oldVNode.key) {
-      let renderFn = STATEFUL.get(oldVNode.node);
+    // if (oldVNode && isFn(vnode.tag) && oldVNode.fn === vnode.fn && vnode.key === oldVNode.key) {
+    //   let renderFn = STATEFUL.get(oldVNode.node);
 
-      return normalizeVnode({
-        ...oldVNode,
-        ...vnode,
-        ...renderFn(vnode.props, vnode.children),
-        key: vnode.key
-      });
-    } else if (isFn(vnode.fn) && isFn(vnode.tag)) {
-      return normalizeVnode({
-        ...vnode,
-        ...vnode.tag(vnode.props, vnode.children),
-        renderFn: vnode.tag,
-        key: vnode.key,
-        fn: vnode.fn
-      });
-    } else if (vnode.type === COMPONENT) {
-      return normalizeVnode(unpackComponent(vnode));
-    }
+    //   return normalizeVnode({
+    //     ...oldVNode,
+    //     ...vnode,
+    //     ...renderFn(vnode.props, vnode.children),
+    //     key: vnode.key
+    //   });
+    // } else if (isFn(vnode.fn) && isFn(vnode.tag)) {
+    //   return normalizeVnode({
+    //     ...vnode,
+    //     ...vnode.tag(vnode.props, vnode.children),
+    //     renderFn: vnode.tag,
+    //     key: vnode.key,
+    //     fn: vnode.fn
+    //   });
+    // } else if (vnode.type === COMPONENT) {
+    //   return normalizeVnode(unpackComponent(vnode));
+    // }
+
+    // if (vnode.type === COMPONENT)
+    //   return normalizeVnode(unpackComponent(vnode));
 
     return vnode;
   }
@@ -87,7 +90,19 @@ let normalizeVnode = (vnode, oldVNode) => {
   return { type: TEXT, tag: '' };
 }
 
+let createComponent = (vnode, env) => {
+  vnode.instance = vnode.tag(vnode.props, vnode.children);
+
+  if (isFn(vnode.instance))
+    vnode.instance = { ...vnode, tag: vnode.instance };
+
+  return createNode(vnode.instance, env);
+};
+
 let createNode = (vnode, env) => {
+  if (vnode.type === COMPONENT)
+    return (vnode.node = createComponent(vnode, env));
+
   let i,
     props = vnode.props,
     node = vnode.type === TEXT
@@ -96,7 +111,7 @@ let createNode = (vnode, env) => {
 
   for (i in props) patchProp(node, i, props[i], env);
 
-  if (vnode.type !== TEXT)
+  if (vnode.type === ELEMENT)
     for (i = 0; i < vnode.children.length; i++)
       node.appendChild(
         createNode(
@@ -105,20 +120,11 @@ let createNode = (vnode, env) => {
         )
       );
 
-  if (isFn(vnode.renderFn)) {
-    STATEFUL.set(node, vnode.renderFn);
-  }
-
   return (vnode.node = node);
 };
 
 let removeChild = (parent, vnode) => {
   parent.removeChild(vnode.node);
-
-  // if it's a stateful component, clean up
-  if (isFn(vnode.fn)) {
-    STATEFUL.delete(vnode.node);
-  }
 };
 
 let patch = (parent, node, oldVNode, newVNode, env) => {
@@ -134,10 +140,18 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
     node = parent.insertBefore(
       createNode((newVNode = normalizeVnode(newVNode, oldVNode)), env),
       node
-    )
+    );
 
     // if the oldVnode did exist, make sure to remove its real node from the real DOM
     if (oldVNode != null) removeChild(parent, oldVNode);
+  } else if (oldVNode.type === COMPONENT && newVNode.type === COMPONENT && oldVNode.tag === newVNode.tag) {
+    let maybeInstance = oldVNode.instance;
+    if (isFn(maybeInstance.tag)) newVNode.instance = maybeInstance;
+    else maybeInstance = newVNode;
+
+    // should not createNode
+    newVNode.node = createNode(maybeInstance, env);
+    patch(parent, node, oldVNode.instance, newVNode.instance, env);
   } else {
     let i,
       tmpVKid,
@@ -398,7 +412,8 @@ export function m(tag, ...tail) {
 
   addChildren(tail, children); // will recurse through tail and push valid childs to `children`
   vnode = { type, tag, key, props: { ...props }, children };
-  return type === COMPONENT ? unpackComponent(vnode) : vnode;
+  // return type === COMPONENT ? unpackComponent(vnode) : vnode;
+  return vnode;
 }
 
 m.retain = _ => m(RETAIN_KEY);

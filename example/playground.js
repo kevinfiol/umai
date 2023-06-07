@@ -1,4 +1,4 @@
-// import { m, mount } from '../index.js';
+import { m, mount } from '../index.js';
 // import { m, umount as mount } from './closures.js';
 // import { h, app, text } from './hyperapp.js';
 
@@ -97,16 +97,16 @@ export function runUmaiApp() {
     let count = 14;
 
     return (props) => (
-      m(StatefulSubCounter, {
-        count,
-        name: props.name,
-        onClick: () => count += 1
-      })
-      // m('div.counter',
-      //   m('h2', count),
-      //   m('button', { onclick: () => count += 1 }, 'inc'),
-      //   m('p', props.name)
-      // )
+      // m(StatefulSubCounter, {
+      //   count,
+      //   name: props.name,
+      //   onClick: () => count += 1
+      // })
+      m('div.counter',
+        m('h2', count),
+        m('button', { onclick: () => count += 1 }, 'inc'),
+        m('p', props.name)
+      )
     )
   };
 
@@ -118,17 +118,20 @@ export function runUmaiApp() {
       //   m('p', 'remove me')
       // ,
 
-      m('input', { value, oninput: (ev) => {
-        value = ev.target.value;
-        filtered = xs.filter(x => x.name.indexOf(value) > -1)
-      } }),
+      // m('input', { value, oninput: (ev) => {
+      //   value = ev.target.value;
+      //   filtered = xs.filter(x => x.name.indexOf(value) > -1)
+      // } }),
 
-      m('ul',
-        filtered.map(x =>
-          // m('p', { key: x.name }, x.name)
-          m(Counter, { key: x.name, name: x.name })
-        )
-      )
+      // m(PureCounter),
+      m(Counter, { name: 'kevin' })
+
+      // m('ul',
+      //   filtered.map(x =>
+      //     // m('p', { key: x.name }, x.name)
+      //     m(Counter, { key: x.name, name: x.name })
+      //   )
+      // )
     )
   );
 
