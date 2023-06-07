@@ -116,17 +116,20 @@ export function runUmaiApp() {
 
   const App = () => (
     m('div.monospace',
-      m(Counter, { name: 'kevin' })
+      // m('p', count),
+      // m('button', { onclick: () => count += 1 }, 'inc')
+
+      m(Counter, { name: 'kevin' }),
       // m('h1', { class: 'sans-serif' }, 'sup'),
 
       // value !== 'r' &&
       //   m('p', 'remove me')
       // ,
 
-      m('input', { value, oninput: (ev) => {
-        value = ev.target.value;
-        filtered = xs.filter(x => x.name.indexOf(value) > -1)
-      } }),
+      // m('input', { value, oninput: (ev) => {
+      //   value = ev.target.value;
+      //   filtered = xs.filter(x => x.name.indexOf(value) > -1)
+      // } }),
 
       // // m(PureCounter),
       // // m(Counter, { key: 'test', name: 'kevin' })
