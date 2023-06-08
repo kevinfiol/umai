@@ -38,6 +38,7 @@ let normalizeVnode = vnode =>
     : { type: TEXT, tag: '' };
 
 let createComponent = (vnode, env) => {
+  let ctx = vnode.props.ctx = vnode.props.ctx || {};
   vnode.instance = vnode.tag(vnode.props, vnode.children);
 
   if (isFn(vnode.instance)) {
@@ -45,6 +46,7 @@ let createComponent = (vnode, env) => {
     vnode.instance = { ...vnode, type: COMPONENT, tag: vnode.instance };
   }
 
+  vnode.instance.props.ctx = ctx;
   vnode.instance.key = vnode.key;
   return createNode(vnode.instance, env);
 };
@@ -96,6 +98,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
     if (oldVNode != null) removeChild(parent, oldVNode);
   } else if (oldVNode.type === STATEFUL && oldVNode.tag === newVNode.tag) {
     newVNode.type = STATEFUL;
+    newVNode.props.ctx = oldVNode.props.ctx;
     newVNode.instance = {
       ...oldVNode.instance,
       props: newVNode.props,
@@ -105,6 +108,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
   } else if (oldVNode.type === COMPONENT && oldVNode.tag === newVNode.tag) {
     newVNode.instance = newVNode.tag(newVNode.props, newVNode.children);
     newVNode.instance.key = newVNode.key;
+    newVNode.instance.props.ctx = newVNode.props.ctx;
     patch(parent, node, oldVNode.instance, newVNode.instance, env);
   } else {
     let i,
@@ -365,8 +369,10 @@ export function m(tag, ...tail) {
 
   addChildren(tail, children); // will recurse through tail and push valid childs to `children`
   vnode = { type, tag, key, props: { ...props }, children };
-  // return type === COMPONENT ? unpackComponent(vnode) : vnode;
   return vnode;
 }
 
+export const Fragment = (_, children) => children;
+
+m.Fragment = Fragment;
 m.retain = _ => m(RETAIN_KEY);
