@@ -4,7 +4,6 @@ let NIL = void 0,
   TEXT = 3,
   STATEFUL = 4,
   REDRAWS = [],
-  RETAIN_KEY = '=',
   isArray = Array.isArray,
   isStr = x => typeof x === 'string',
   isFn = x => typeof x === 'function',
@@ -16,8 +15,6 @@ let NIL = void 0,
     else if (isStr(x) || typeof x === 'number') children.push({ type: TEXT, tag: x });
     else children.push(x);
   };
-let dom;
-let newV;
 
 let patchProp = (node, name, newProp, { redraw }) => {
   if (name in node) {
@@ -101,27 +98,14 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
     newVNode.type = STATEFUL;
     newVNode.instance = {
       ...oldVNode.instance,
-      instance: {
-        ...oldVNode.instance.tag(newVNode.props, newVNode.children),
-        instance: oldVNode.instance.instance
-      }
+      props: newVNode.props,
+      children: newVNode.children
     };
-
     patch(parent, node, oldVNode.instance, newVNode.instance, env);
   } else if (oldVNode.type === COMPONENT && oldVNode.tag === newVNode.tag) {
-    let fn = isFn(oldVNode.instance.tag)
-      ? (newVNode.instance = { ...oldVNode.instance }).tag
-      : newVNode.tag;
-
-    let _vnode = fn(newVNode.props, newVNode.children);
-    patch(parent, node, fn === newVNode.tag ? oldVNode.instance : oldVNode.instance.instance, _vnode, env);
-
-
-    // newVNode.instance = isFn(oldVNode.instance.tag)
-    //   ? { ...oldVNode.instance }
-    //   : { ...newVNode.tag(newVNode.props, newVNode.children), key: newVNode.key };
-
-    // patch(parent, node, oldVNode.instance, newVNode.instance, env);
+    newVNode.instance = newVNode.tag(newVNode.props, newVNode.children);
+    newVNode.instance.key = newVNode.key;
+    patch(parent, node, oldVNode.instance, newVNode.instance, env);
   } else {
     let i,
       tmpVKid,
@@ -332,20 +316,15 @@ export function mount(node, view) {
   node.innerHTML = '<a></a>';
   node = node.lastChild;
 
-  let env = {};
-    dom = { type: ELEMENT, node };
-    let draw = _ => {
-      newV = view();
-      node = patch(node.parentNode, node, dom, newV, env);
-      dom = newV;
-    };
-      // (node = patch(
-      //   node.parentNode, // parentNode
-      //   node, // node
-      //   dom, // oldVnode
-      //   (dom = view()), // newVnode
-      //   env // env
-      // ));
+  let env = {},
+    dom = { type: ELEMENT, node },
+    draw = _ => (node = patch(
+      node.parentNode, // parentNode
+      node, // node
+      dom, // oldVnode
+      (dom = view()), // newVnode
+      env // env
+    ));
 
   REDRAWS.push(env.redraw = _ => requestAnimationFrame(draw));
   return env.redraw() && env.redraw;
