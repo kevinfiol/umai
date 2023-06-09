@@ -3,7 +3,9 @@ let NIL = void 0,
   ELEMENT = 1,
   TEXT = 3,
   STATEFUL = 4,
+  FRAGMENT = 5,
   REDRAWS = [],
+  RESERVED = ['ctx'],
   isArray = Array.isArray,
   isStr = x => typeof x === 'string',
   isFn = x => typeof x === 'function',
@@ -41,7 +43,9 @@ let createComponent = (vnode, env) => {
   let ctx = vnode.props.ctx = vnode.props.ctx || {};
   vnode.instance = vnode.tag(vnode.props, vnode.children);
 
-  if (isFn(vnode.instance)) {
+  if (isArray(vnode.instance)) {
+    vnode.instance = { props: vnode.props, tag: '[', type: FRAGMENT, children: vnode.instance };
+  } else if (isFn(vnode.instance)) {
     vnode.type = STATEFUL;
     vnode.instance = { ...vnode, type: COMPONENT, tag: vnode.instance };
   }
@@ -59,11 +63,14 @@ let createNode = (vnode, env) => {
     props = vnode.props,
     node = vnode.type === TEXT
       ? document.createTextNode(vnode.tag)
+      : vnode.type === FRAGMENT
+      ? document.createDocumentFragment()
       : document.createElement(vnode.tag);
 
-  for (i in props) patchProp(node, i, props[i], env);
+  if (vnode.type !== FRAGMENT)
+    for (i in props) patchProp(node, i, props[i], env);
 
-  if (vnode.type === ELEMENT)
+  if (vnode.type === ELEMENT || vnode.type === FRAGMENT)
     for (i = 0; i < vnode.children.length; i++)
       node.appendChild(
         createNode(
@@ -130,6 +137,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
       // if the property is value, selected, or checked, compare the property on the actual dom NODE to newProps
       // otherwise, compare oldProps[i] to newProps[i]
       if (
+        !RESERVED.includes(i) &&
         (i === "value" || i === "selected" || i === "checked"
           ? node[i]
           : oldProps[i]) !== newProps[i]
@@ -372,7 +380,4 @@ export function m(tag, ...tail) {
   return vnode;
 }
 
-export const Fragment = (_, children) => children;
-
-m.Fragment = Fragment;
 m.retain = _ => m(RETAIN_KEY);

@@ -1,6 +1,6 @@
 import { m, mount } from '../index.js';
 // import { m, umount as mount } from './closures.js';
-// import { h, app, text } from './hyperapp.js';
+import { h, app, text } from './hyperapp.js';
 
 const root = document.getElementById('app');
 
@@ -39,6 +39,7 @@ export function runHyperApp() {
       input !== 'r' && 
         h('p', {}, text('remove me')),
       ,
+
       h('input', { type: 'text', value: input, oninput: FilterResults }),
       h('div', {},
         filtered.map(person =>
@@ -74,10 +75,10 @@ export function runUmaiApp() {
 
   const StatefulSubCounter = ({ onClick }) => {
     let statefulCount = 1;
-    console.log('mount StatefulSubCounter');
+    // console.log('mount StatefulSubCounter');
 
     return ({ count, name, ctx }) => {
-      console.log('run StatefulSubCounter render', { ctx });
+      // console.log('run StatefulSubCounter render', { ctx });
       return m('div.counter',
         m('h2', count),
         m('h3', `stateful count: ${statefulCount}`),
@@ -98,10 +99,10 @@ export function runUmaiApp() {
   const Counter = ({ ctx }) => {
     let count = 14;
     ctx.foo = 10;
-    console.log('mount Counter');
+    // console.log('mount Counter');
 
     return (props) => {
-      console.log('run Counter render', { name: props.name, count });
+      // console.log('run Counter render', { name: props.name, count });
       return m('div',
         m(StatefulSubCounter, {
           count,
@@ -118,6 +119,11 @@ export function runUmaiApp() {
     }
   };
 
+  const Foo = () => [[
+    m('p', 'hi'),
+    m('p', 'hi2')
+  ]];
+
   const App = () => (
     m('div.monospace',
       // m('p', count),
@@ -130,20 +136,22 @@ export function runUmaiApp() {
       //   m('p', 'remove me')
       // ,
 
-      m('input', { value, oninput: (ev) => {
-        value = ev.target.value;
-        filtered = xs.filter(x => x.name.indexOf(value) > -1)
-      } }),
+      m(Foo)
 
-      // // m(PureCounter),
-      // // m(Counter, { key: 'test', name: 'kevin' })
+      // m('input', { value, oninput: (ev) => {
+      //   value = ev.target.value;
+      //   filtered = xs.filter(x => x.name.indexOf(value) > -1)
+      // } }),
 
-      m('ul',
-        filtered.map(x =>
-          // m('p', { key: x.name }, x.name)
-          m(Counter, { key: x.name, name: x.name })
-        )
-      )
+      // // // m(PureCounter),
+      // // // m(Counter, { key: 'test', name: 'kevin' })
+
+      // m('ul',
+      //   filtered.map(x =>
+      //     // m('p', { key: x.name }, x.name)
+      //     m(Counter, { key: x.name, name: x.name })
+      //   )
+      // )
     )
   );
 
