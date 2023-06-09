@@ -127,7 +127,11 @@ export function runUmaiApp() {
   const App = () => (
     m('div.monospace',
       // m('p', count),
-      // m('button', { onclick: () => count += 1 }, 'inc')
+      m('button', { onclick: () => count += 1 }, 'inc'),
+
+      [
+        m('p', count)
+      ],
 
       // m(Counter, { name: 'kevin' }),
       m('h1', { class: 'sans-serif' }, 'sup'),
@@ -135,8 +139,6 @@ export function runUmaiApp() {
       // value !== 'r' &&
       //   m('p', 'remove me')
       // ,
-
-      m(Foo)
 
       // m('input', { value, oninput: (ev) => {
       //   value = ev.target.value;

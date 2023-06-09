@@ -4,6 +4,7 @@ let NIL = void 0,
   TEXT = 3,
   STATEFUL = 4,
   FRAGMENT = 5,
+  FRAGMENT_TAG = '[',
   REDRAWS = [],
   RESERVED = ['ctx'],
   isArray = Array.isArray,
@@ -44,7 +45,7 @@ let createComponent = (vnode, env) => {
   vnode.instance = vnode.tag(vnode.props, vnode.children);
 
   if (isArray(vnode.instance)) {
-    vnode.instance = { props: vnode.props, tag: '[', type: FRAGMENT, children: vnode.instance };
+    vnode.instance = { props: vnode.props, tag: '[', type: FRAGMENT, children: vnode.instance.flat(Infinity) };
   } else if (isFn(vnode.instance)) {
     vnode.type = STATEFUL;
     vnode.instance = { ...vnode, type: COMPONENT, tag: vnode.instance };
@@ -350,9 +351,13 @@ export const redraw = _ => {
 /** @type {import('./index.d.ts').m} **/
 export function m(tag, ...tail) {
   let vnode, key, i, tmp, classes,
-    type = isFn(tag) ? COMPONENT : ELEMENT,
     props = {},
-    children = [];
+    children = [],
+    type = isFn(tag)
+      ? COMPONENT
+      : tag === FRAGMENT_TAG
+      ? FRAGMENT
+      : ELEMENT;
 
   if (tail.length && !isRenderable(tail[0]))
     [{ key, ...props }, ...tail] = tail;
