@@ -77,7 +77,7 @@ export function runUmaiApp() {
     let statefulCount = 1;
     // console.log('mount StatefulSubCounter');
 
-    return ({ count, name, ctx }) => {
+    return ({ count, name }) => {
       // console.log('run StatefulSubCounter render', { ctx });
       return m('div.counter',
         m('h2', count),
@@ -96,9 +96,8 @@ export function runUmaiApp() {
     )
   );
 
-  const Counter = ({ ctx }) => {
+  const Counter = ({ }) => {
     let count = 14;
-    ctx.foo = 10;
     // console.log('mount Counter');
 
     return (props) => {
@@ -129,9 +128,16 @@ export function runUmaiApp() {
       // m('p', count),
       m('button', { onclick: () => count += 1 }, 'inc'),
 
-      [
-        m('p', count)
-      ],
+      (count < 5 || count > 10) &&
+        m('p', {
+          dom: (node) => {
+            console.log('node: ', node);
+            return () => {
+              console.log('removed p')
+            }
+          }
+        }, count)
+      ,
 
       // m(Counter, { name: 'kevin' }),
       m('h1', { class: 'sans-serif' }, 'sup'),

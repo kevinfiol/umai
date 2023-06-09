@@ -6,7 +6,7 @@ let NIL = void 0,
   FRAGMENT = 5,
   FRAGMENT_TAG = '[',
   REDRAWS = [],
-  RESERVED = ['ctx'],
+  RESERVED = ['dom'],
   isArray = Array.isArray,
   isStr = x => typeof x === 'string',
   isFn = x => typeof x === 'function',
@@ -45,7 +45,7 @@ let createComponent = (vnode, env) => {
   vnode.instance = vnode.tag(vnode.props, vnode.children);
 
   if (isArray(vnode.instance)) {
-    vnode.instance = { props: vnode.props, tag: '[', type: FRAGMENT, children: vnode.instance.flat(Infinity) };
+    vnode.instance = { props: vnode.props, tag: FRAGMENT_TAG, type: FRAGMENT, children: vnode.instance.flat(Infinity) };
   } else if (isFn(vnode.instance)) {
     vnode.type = STATEFUL;
     vnode.instance = { ...vnode, type: COMPONENT, tag: vnode.instance };
@@ -80,14 +80,22 @@ let createNode = (vnode, env) => {
         )
       );
 
+  if (props && isFn(props.dom))
+    vnode.remove = props.dom(node);
+
   return (vnode.node = node);
 };
 
 let removeChild = (parent, vnode) => {
+  if (isFn(vnode.remove)) vnode.remove();
   parent.removeChild(vnode.node);
 };
 
 let patch = (parent, node, oldVNode, newVNode, env) => {
+  if (oldVNode.type === ELEMENT && newVNode.type === ELEMENT && oldVNode.tag === newVNode.tag) {
+    newVNode.remove = oldVNode.remove;
+  }
+
   if (oldVNode === newVNode) {
   } else if (oldVNode != null && oldVNode.type === TEXT && newVNode.type === TEXT) {
     // they are both text nodes
