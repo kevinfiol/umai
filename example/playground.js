@@ -96,9 +96,13 @@ export function runUmaiApp() {
     )
   );
 
-  const Counter = ({ }) => {
+  const Counter = ({ ctx }) => {
     let count = 14;
     // console.log('mount Counter');
+
+    ctx.remove(() => {
+      
+    });
 
     return (props) => {
       // console.log('run Counter render', { name: props.name, count });
