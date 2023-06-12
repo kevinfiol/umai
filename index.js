@@ -106,8 +106,18 @@ let createNode = (vnode, env) => {
   return (vnode.node = node);
 };
 
+let getRemoveEvents = (vnode, removes = []) => {
+  if (vnode.remove !== NIL) removes.push(vnode.remove);
+  if (vnode.children !== NIL)
+    for (let i = 0, len = vnode.children.length; i < len; i++)
+      removeEvents(vnode.children[i], removes);
+  if (vnode.instance !== NIL) removeEvents(vnode.instance, removes);
+  return removes;
+};
+
 let removeChild = (parent, vnode) => {
-  if (vnode.remove !== NIL) vnode.remove();
+  let remove, removes = getRemoveEvents(vnode);
+  while (remove = removes.pop()) remove();
   parent.removeChild(vnode.node);
 };
 
