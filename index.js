@@ -6,8 +6,10 @@ let NIL = void 0,
   FRAGMENT = 5,
   FRAGMENT_TAG = '[',
   REDRAWS = [],
-  RESERVED = ['dom'],
+  RESERVED = ['dom', 'ctx'],
+  REMOVES = [],
   isArray = Array.isArray,
+  noop = _ => {},
   isStr = x => typeof x === 'string',
   isFn = x => typeof x === 'function',
   isObj = x => x !== null && typeof x === 'object',
@@ -19,8 +21,16 @@ let NIL = void 0,
     else children.push(x);
   };
 
+class Context {
+  remove(evt) {
+    REMOVES.push(evt);
+  }
+}
+
 let patchProp = (node, name, newProp, { redraw }) => {
-  if (name in node) {
+  if (RESERVED.includes(name)) {
+    // do nothing
+  } else if (name in node) {
     if (name[0] === 'o' && name[1] === 'n') {
       let res, fn = newProp;
 
@@ -41,19 +51,29 @@ let normalizeVnode = vnode =>
     : { type: TEXT, tag: '' };
 
 let createComponent = (vnode, env) => {
-  let ctx = vnode.props.ctx = vnode.props.ctx || {};
-  vnode.instance = vnode.tag(vnode.props, vnode.children);
+  let ctx = vnode.props.ctx = vnode.props.ctx || new Context,
+    instance = vnode.tag(vnode.props, vnode.children);
 
-  if (isArray(vnode.instance)) {
-    vnode.instance = { props: vnode.props, tag: FRAGMENT_TAG, type: FRAGMENT, children: vnode.instance.flat(Infinity) };
-  } else if (isFn(vnode.instance)) {
+  if (isArray(instance)) {
+    instance = {
+      props: vnode.props,
+      tag: FRAGMENT_TAG,
+      type: FRAGMENT,
+      children: instance.flat(Infinity)
+    };
+  } else if (isFn(instance)) {
     vnode.type = STATEFUL;
-    vnode.instance = { ...vnode, type: COMPONENT, tag: vnode.instance };
+    vnode.remove = REMOVES.pop();
+    instance = {
+      ...vnode,
+      type: COMPONENT,
+      tag: instance
+    };
   }
 
-  vnode.instance.props.ctx = ctx;
-  vnode.instance.key = vnode.key;
-  return createNode(vnode.instance, env);
+  instance.props.ctx = ctx;
+  instance.key = vnode.key;
+  return createNode((vnode.instance = instance), env);
 };
 
 let createNode = (vnode, env) => {
@@ -87,14 +107,13 @@ let createNode = (vnode, env) => {
 };
 
 let removeChild = (parent, vnode) => {
-  if (isFn(vnode.remove)) vnode.remove();
+  if (vnode.remove !== NIL) vnode.remove();
   parent.removeChild(vnode.node);
 };
 
 let patch = (parent, node, oldVNode, newVNode, env) => {
-  if (oldVNode.type === ELEMENT && newVNode.type === ELEMENT && oldVNode.tag === newVNode.tag) {
+  if (oldVNode != null && oldVNode.tag === newVNode.tag)
     newVNode.remove = oldVNode.remove;
-  }
 
   if (oldVNode === newVNode) {
   } else if (oldVNode != null && oldVNode.type === TEXT && newVNode.type === TEXT) {
@@ -146,7 +165,6 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
       // if the property is value, selected, or checked, compare the property on the actual dom NODE to newProps
       // otherwise, compare oldProps[i] to newProps[i]
       if (
-        !RESERVED.includes(i) &&
         (i === "value" || i === "selected" || i === "checked"
           ? node[i]
           : oldProps[i]) !== newProps[i]

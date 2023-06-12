@@ -98,12 +98,6 @@ export function runUmaiApp() {
 
   const Counter = ({ ctx }) => {
     let count = 14;
-    // console.log('mount Counter');
-
-    ctx.remove(() => {
-      
-    });
-
     return (props) => {
       // console.log('run Counter render', { name: props.name, count });
       return m('div',
@@ -127,24 +121,47 @@ export function runUmaiApp() {
     m('p', 'hi2')
   ]];
 
+  const Baz = ({ ctx }) => {
+    ctx.remove(() => {
+      console.log('remove baz'); // doesn't run :(
+      // maybe keep track of what component is currently mounting, and queue the removes?
+    });
+
+    return () => m('p', 'baz');
+  };
+
+  const Bar = ({ ctx }) => {
+    ctx.remove(() => {
+      console.log('removing bar')
+    });
+
+    return (props) => (
+      m('div', { dom: () => { console.log('div'); return () => console.log('unmount div'); } },
+        m('p', 'a bar'),
+        m(Baz)
+      )
+    )
+  };
+
   const App = () => (
     m('div.monospace',
-      // m('p', count),
+      m('p', count),
       m('button', { onclick: () => count += 1 }, 'inc'),
 
-      (count < 5 || count > 10) &&
-        m('p', {
-          dom: (node) => {
-            console.log('node: ', node);
-            return () => {
-              console.log('removed p')
-            }
-          }
-        }, count)
-      ,
+      (count < 5 || count > 10) && [
+        m(Bar),
+        // m('p', {
+        //   dom: (node) => {
+        //     console.log('node: ', node);
+        //     return () => {
+        //       console.log('removed p')
+        //     }
+        //   }
+        // }, count)
+      ],
 
       // m(Counter, { name: 'kevin' }),
-      m('h1', { class: 'sans-serif' }, 'sup'),
+      // m('h1', { class: 'sans-serif' }, 'sup'),
 
       // value !== 'r' &&
       //   m('p', 'remove me')
