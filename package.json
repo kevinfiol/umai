@@ -10,8 +10,8 @@
   "unpkg": "dist/umai.min.js",
   "umd:name": "umai",
   "scripts": {
-    "test": "node test.js",
-    "build": "bundt index.js && node test.js",
+    "test": "node test/esbuild.js && node test.js",
+    "build": "bundt index.js",
     "prepare": "npm run build"
   },
   "engines": {
@@ -23,7 +23,9 @@
   ],
   "devDependencies": {
     "bundt": "1.1.5",
-    "flitch": "0.7.3"
+    "esbuild": "^0.18.1",
+    "flitch": "0.7.3",
+    "jsdom": "^22.1.0"
   },
   "keywords": [
     "vdom",

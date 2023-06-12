@@ -7,17 +7,16 @@ let NIL = void 0,
   FRAGMENT_TAG = '[',
   REDRAWS = [],
   RESERVED = ['dom', 'ctx'],
+  TYPE = Symbol('type'),
   REMOVES = [],
   isArray = Array.isArray,
-  noop = _ => {},
   isStr = x => typeof x === 'string',
   isFn = x => typeof x === 'function',
   isObj = x => x !== null && typeof x === 'object',
-  isRenderable = x => x == null || typeof x === 'string' || typeof x === 'number' || x.type || isArray(x),
   getKey = v => v == null ? v : v.key,
   addChildren = (x, children) => {
     if (isArray(x)) for (let i = 0; i < x.length; i++) addChildren(x[i], children);
-    else if (isStr(x) || typeof x === 'number') children.push({ type: TEXT, tag: x });
+    else if (isStr(x) || typeof x === 'number') children.push({ [TYPE]: TEXT, tag: x });
     else children.push(x);
   };
 
@@ -48,7 +47,7 @@ let patchProp = (node, name, newProp, { redraw }) => {
 let normalizeVnode = vnode => 
   vnode !== true && vnode !== false && vnode
     ? vnode
-    : { type: TEXT, tag: '' };
+    : { [TYPE]: TEXT, tag: '' };
 
 let createComponent = (vnode, env) => {
   let ctx = vnode.props.ctx = vnode.props.ctx || new Context,
@@ -58,16 +57,17 @@ let createComponent = (vnode, env) => {
     instance = {
       props: vnode.props,
       tag: FRAGMENT_TAG,
-      type: FRAGMENT,
+      [TYPE]: FRAGMENT,
       children: instance.flat(Infinity)
     };
   } else if (isFn(instance)) {
-    vnode.type = STATEFUL;
+    vnode[TYPE] = STATEFUL;
     vnode.remove = REMOVES.pop();
     instance = {
       ...vnode,
-      type: COMPONENT,
-      tag: instance
+      [TYPE]: COMPONENT,
+      tag: instance,
+      remove: NIL
     };
   }
 
@@ -77,21 +77,23 @@ let createComponent = (vnode, env) => {
 };
 
 let createNode = (vnode, env) => {
-  if (vnode.type === COMPONENT || vnode.type === STATEFUL)
+  let type = vnode[TYPE];
+
+  if (type === COMPONENT || type === STATEFUL)
     return (vnode.node = createComponent(vnode, env));
 
   let i,
     props = vnode.props,
-    node = vnode.type === TEXT
+    node = type === TEXT
       ? document.createTextNode(vnode.tag)
-      : vnode.type === FRAGMENT
+      : type === FRAGMENT
       ? document.createDocumentFragment()
       : document.createElement(vnode.tag);
 
-  if (vnode.type !== FRAGMENT)
+  if (type !== FRAGMENT)
     for (i in props) patchProp(node, i, props[i], env);
 
-  if (vnode.type === ELEMENT || vnode.type === FRAGMENT)
+  if (type === ELEMENT || type === FRAGMENT)
     for (i = 0; i < vnode.children.length; i++)
       node.appendChild(
         createNode(
@@ -106,17 +108,17 @@ let createNode = (vnode, env) => {
   return (vnode.node = node);
 };
 
-let getRemoveEvents = (vnode, removes = []) => {
+let getRemoves = (vnode, removes = []) => {
   if (vnode.remove !== NIL) removes.push(vnode.remove);
   if (vnode.children !== NIL)
     for (let i = 0, len = vnode.children.length; i < len; i++)
-      removeEvents(vnode.children[i], removes);
-  if (vnode.instance !== NIL) removeEvents(vnode.instance, removes);
+      getRemoves(vnode.children[i], removes);
+  if (vnode.instance !== NIL) getRemoves(vnode.instance, removes);
   return removes;
 };
 
 let removeChild = (parent, vnode) => {
-  let remove, removes = getRemoveEvents(vnode);
+  let remove, removes = getRemoves(vnode);
   while (remove = removes.pop()) remove();
   parent.removeChild(vnode.node);
 };
@@ -126,7 +128,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
     newVNode.remove = oldVNode.remove;
 
   if (oldVNode === newVNode) {
-  } else if (oldVNode != null && oldVNode.type === TEXT && newVNode.type === TEXT) {
+  } else if (oldVNode != null && oldVNode[TYPE] === TEXT && newVNode[TYPE] === TEXT) {
     // they are both text nodes
     // update if the newVNode does not equal the old one
     if (oldVNode.tag !== newVNode.tag) node.nodeValue = newVNode.tag;
@@ -141,8 +143,8 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
 
     // if the oldVnode did exist, make sure to remove its real node from the real DOM
     if (oldVNode != null) removeChild(parent, oldVNode);
-  } else if (oldVNode.type === STATEFUL && oldVNode.tag === newVNode.tag) {
-    newVNode.type = STATEFUL;
+  } else if (oldVNode[TYPE] === STATEFUL && oldVNode.tag === newVNode.tag) {
+    newVNode[TYPE] = STATEFUL;
     newVNode.props.ctx = oldVNode.props.ctx;
     newVNode.instance = {
       ...oldVNode.instance,
@@ -150,7 +152,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
       children: newVNode.children
     };
     patch(parent, node, oldVNode.instance, newVNode.instance, env);
-  } else if (oldVNode.type === COMPONENT && oldVNode.tag === newVNode.tag) {
+  } else if (oldVNode[TYPE] === COMPONENT && oldVNode.tag === newVNode.tag) {
     newVNode.instance = newVNode.tag(newVNode.props, newVNode.children);
     newVNode.instance.key = newVNode.key;
     newVNode.instance.props.ctx = newVNode.props.ctx;
@@ -293,7 +295,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
 
         // otherwise, if the new child is keyless, and the oldVNode is an element vnode
         // (remember, this is not a child, oldVNode is the PARENT during this call of patch)
-        if (newKey == null || oldVNode.type === ELEMENT) {
+        if (newKey == null || oldVNode[TYPE] === ELEMENT) {
           if (oldKey == null) {
             patch(
               node,
@@ -366,7 +368,7 @@ export function mount(node, view) {
   node = node.lastChild;
 
   let env = {},
-    dom = { type: ELEMENT, node },
+    dom = { [TYPE]: ELEMENT, node },
     draw = _ => (node = patch(
       node.parentNode, // parentNode
       node, // node
@@ -395,7 +397,7 @@ export function m(tag, ...tail) {
       ? FRAGMENT
       : ELEMENT;
 
-  if (tail.length && !isRenderable(tail[0]))
+  if (tail.length && isObj(tail[0]) && tail[0][TYPE] === NIL)
     [{ key, ...props }, ...tail] = tail;
 
   if (isStr(tag)) {
@@ -417,7 +419,7 @@ export function m(tag, ...tail) {
   }
 
   addChildren(tail, children); // will recurse through tail and push valid childs to `children`
-  vnode = { type, tag, key, props: { ...props }, children };
+  vnode = { [TYPE]: type, tag, key, props: { ...props }, children };
   return vnode;
 }
 

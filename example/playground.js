@@ -147,6 +147,7 @@ export function runUmaiApp() {
     m('div.monospace',
       m('p', count),
       m('button', { onclick: () => count += 1 }, 'inc'),
+      m('div', null, m('p', 'hello this is div')),
 
       (count < 5 || count > 10) && [
         m(Bar),
