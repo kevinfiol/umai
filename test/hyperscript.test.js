@@ -122,3 +122,28 @@ test('component types', () => {
     }
   )
 });
+
+test('array children', () => {
+  assert.deepEqual(
+    m('div', [
+      m('p', 'hello')
+    ]),
+    {
+      tag: 'div',
+      type: ELEMENT,
+      key: undefined,
+      props: {},
+      children: [
+        {
+          tag: 'p',
+          type: ELEMENT,
+          key: undefined,
+          props: {},
+          children: [
+            { type: TEXT, tag: 'hello' }
+          ]
+        }
+      ]
+    }
+  );
+})

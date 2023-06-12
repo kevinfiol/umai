@@ -7,6 +7,7 @@ const test = suite('hyperscript jsx');
 const COMPONENT = 2;
 const ELEMENT = 1;
 const TEXT = 3;
+const FRAGMENT = 5
 
 test('simple elements', () => {
   assert.deepEqual(
@@ -113,3 +114,38 @@ test('component types', () => {
     }
   )
 });
+
+test('fragments', () => {
+  assert.deepEqual(
+    <div>
+      <>
+        <b>hi</b>
+      </>
+    </div>,
+    {
+      tag: 'div',
+      type: ELEMENT,
+      key: undefined,
+      props: {},
+      children: [
+        {
+          tag: '[',
+          type: FRAGMENT,
+          key: undefined,
+          props: {},
+          children: [
+            {
+              tag: 'b',
+              type: ELEMENT,
+              props: {},
+              key: undefined,
+              children: [
+                { tag: 'hi', type: TEXT }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  );
+})

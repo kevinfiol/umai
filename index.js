@@ -11,7 +11,7 @@ let NIL = void 0,
   isArray = Array.isArray,
   isStr = x => typeof x === 'string',
   isFn = x => typeof x === 'function',
-  isObj = x => x !== null && typeof x === 'object',
+  isObj = x => x !== null && !isArray(x) && typeof x === 'object',
   getKey = v => v == null ? v : v.key,
   addChildren = (x, children) => {
     if (isArray(x)) for (let i = 0; i < x.length; i++) addChildren(x[i], children);
