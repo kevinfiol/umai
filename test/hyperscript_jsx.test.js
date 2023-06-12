@@ -22,12 +22,11 @@ test("simple elements", () => {
 test("class strings", () => {
   assert.deepEqual(
     /* @__PURE__ */ m("div", { class: "one two three" }),
-    m("div.one.two.three", { class: "four" }),
     {
       tag: "div",
       type: ELEMENT,
       key: void 0,
-      props: { class: "one two three four" },
+      props: { class: "one two three" },
       children: []
     }
   );

@@ -26,12 +26,11 @@ test('simple elements', () => {
 test('class strings', () => {
   assert.deepEqual(
     <div class="one two three"></div>,
-    m('div.one.two.three', { class: 'four' }),
     {
       tag: 'div',
       type: ELEMENT,
       key: undefined,
-      props: { class: 'one two three four' },
+      props: { class: 'one two three' },
       children: []
     }
   );
