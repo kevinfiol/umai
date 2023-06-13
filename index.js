@@ -1,9 +1,9 @@
 let NIL = void 0,
-  COMPONENT = 2,
-  ELEMENT = 1,
-  TEXT = 3,
-  STATEFUL = 4,
-  FRAGMENT = 5,
+  TEXT = 1,
+  ELEMENT = 2,
+  FRAGMENT = 3,
+  COMPONENT = 4,
+  STATEFUL = 5,
   FRAGMENT_TAG = '[',
   REDRAWS = [],
   RESERVED = ['dom', 'ctx'],
@@ -48,7 +48,7 @@ let normalizeVnode = vnode =>
     ? vnode
     : { type: TEXT, tag: '' };
 
-let createComponent = (vnode, env) => {
+let createInstance = vnode => {
   let ctx = vnode.props.ctx = vnode.props.ctx || new Context,
     instance = vnode.tag(vnode.props, vnode.children);
 
@@ -72,8 +72,11 @@ let createComponent = (vnode, env) => {
 
   instance.props.ctx = ctx;
   instance.key = vnode.key;
-  return createNode((vnode.instance = instance), env);
+  return instance;
 };
+
+let createComponent = (vnode, env) =>
+  createNode((vnode.instance = createInstance(vnode)), env);
 
 let createNode = (vnode, env) => {
   if (vnode.type === COMPONENT || vnode.type === STATEFUL)
@@ -124,7 +127,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
   if (oldVNode != null && oldVNode.tag === newVNode.tag)
     newVNode.remove = oldVNode.remove;
 
-  if (oldVNode === newVNode) {
+  if (oldVNode.type < COMPONENT && oldVNode === newVNode) {
   } else if (oldVNode != null && oldVNode.type === TEXT && newVNode.type === TEXT) {
     // they are both text nodes
     // update if the newVNode does not equal the old one
@@ -150,9 +153,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
     };
     patch(parent, node, oldVNode.instance, newVNode.instance, env);
   } else if (oldVNode.type === COMPONENT && oldVNode.tag === newVNode.tag) {
-    newVNode.instance = newVNode.tag(newVNode.props, newVNode.children);
-    newVNode.instance.key = newVNode.key;
-    newVNode.instance.props.ctx = newVNode.props.ctx;
+    newVNode.instance = createInstance(newVNode);
     patch(parent, node, oldVNode.instance, newVNode.instance, env);
   } else {
     let i,

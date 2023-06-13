@@ -1,6 +1,4 @@
 import { m, mount } from '../index.js';
-// import { m, umount as mount } from './closures.js';
-import { h, app, text } from './hyperapp.js';
 
 const root = document.getElementById('app');
 
@@ -14,234 +12,31 @@ const xs = [
   { id: 7, name: 'baaa' },
 ];
 
-export function runHyperApp() {
-  const Increment = (state) => ({
-    ...state,
-    count: state.count + 1
-  });
-
-  const FilterResults = (state, event) => ({
-    ...state,
-    input: event.target.value,
-    filtered: state.list.filter(x => x.name.indexOf(event.target.value) > -1)
-  });
-
-  const Counter = ({ count }) => (
-    h('div', {}, [
-      h('h2', {}, text(`Counter: ${count}`)),
-      h('button', { onclick: Increment }, text('increment'))
-    ])
-  );
-
-  const App = ({ count, input, filtered }) => (
-    h("div", { class: 'monospace' }, [
-      h('h1', { class: 'sans-serif' }, text('hello')),
-      input !== 'r' && 
-        h('p', {}, text('remove me')),
-      ,
-
-      h('input', { type: 'text', value: input, oninput: FilterResults }),
-      h('div', {},
-        filtered.map(person =>
-          h('div', { key: person.id }, text(person.name))
-        )
-      )
-    ])
-  );
-
-  const initialState = { count: 0, list: xs, filtered: xs, input: '' };
-
-  app({
-    init: initialState,
-    view: App,
-    node: document.getElementById('app')
-  });
-
-  // debug(App(initialState));
-}
-
 export function runUmaiApp() {
-  let value = '';
-  let count = 0;
-  let filtered = [...xs];
+  const State = () => ({ count: 0 });
+  const Actions = state => ({ inc: () => { state.count += 1; console.log('updated state.count', state.count); } });
 
-  const SubCounter = ({ count, name, onClick }) => (
-    m('div.counter',
-      m('h2', count),
-      m('button', { onclick: onClick }, 'inc'),
-      m('p', name)
-    )
-  );
-
-  const StatefulSubCounter = ({ onClick }) => {
-    let statefulCount = 1;
-    // console.log('mount StatefulSubCounter');
-
-    return ({ count, name }) => {
-      // console.log('run StatefulSubCounter render', { ctx });
-      return m('div.counter',
-        m('h2', count),
-        m('h3', `stateful count: ${statefulCount}`),
-        m('button', { onclick: onClick }, 'inc'),
-        m('button', { onclick: () => statefulCount += 1 }, 'inc stateful'),
-        m('p', name)
-      )
-    };
-  };
-
-  const PureCounter = () => (
-    m('div.counter',
-      m('h2', count),
-      m('button', { onclick: () => count += 1 }, 'inc')
-    )
-  );
-
-  const Counter = ({ ctx }) => {
-    let count = 14;
-    return (props) => {
-      // console.log('run Counter render', { name: props.name, count });
+  const Home = () => {
+    return ({ state, actions }) => {
+      console.log('render Home', state.count);
       return m('div',
-        m(StatefulSubCounter, {
-          count,
-          name: props.name,
-          onClick: () => count += 1
-        })
-      )
-
-      // m('div.counter',
-      //   m('h2', count),
-      //   m('button', { onclick: () => count += 1 }, 'inc'),
-      //   m('p', props.name)
-      // )
-    }
-  };
-
-  const Foo = () => [[
-    m('p', 'hi'),
-    m('p', 'hi2')
-  ]];
-
-  const Baz = ({ ctx }) => {
-    ctx.remove(() => {
-      console.log('remove baz'); // doesn't run :(
-      // maybe keep track of what component is currently mounting, and queue the removes?
-    });
-
-    return () => m('p', 'baz');
-  };
-
-  const Bar = ({ ctx }) => {
-    ctx.remove(() => {
-      console.log('removing bar')
-    });
-
-    return (props) => (
-      m('div', { dom: () => { console.log('div'); return () => console.log('unmount div'); } },
-        m('p', 'a bar'),
-        m(Baz)
-      )
-    )
-  };
-
-  const App = () => (
-    m('div.monospace',
-      m('p', count),
-      m('button', { onclick: () => count += 1 }, 'inc'),
-      m('div', null, m('p', 'hello this is div')),
-
-      (count < 5 || count > 10) && [
-        m(Bar),
-        // m('p', {
-        //   dom: (node) => {
-        //     console.log('node: ', node);
-        //     return () => {
-        //       console.log('removed p')
-        //     }
-        //   }
-        // }, count)
-      ],
-
-      // m(Counter, { name: 'kevin' }),
-      // m('h1', { class: 'sans-serif' }, 'sup'),
-
-      // value !== 'r' &&
-      //   m('p', 'remove me')
-      // ,
-
-      // m('input', { value, oninput: (ev) => {
-      //   value = ev.target.value;
-      //   filtered = xs.filter(x => x.name.indexOf(value) > -1)
-      // } }),
-
-      // // // m(PureCounter),
-      // // // m(Counter, { key: 'test', name: 'kevin' })
-
-      // m('ul',
-      //   filtered.map(x =>
-      //     // m('p', { key: x.name }, x.name)
-      //     m(Counter, { key: x.name, name: x.name })
-      //   )
-      // )
-    )
-  );
-
-  mount(root, App);
-}
-
-export function runMithrilApp() {
-  let value = '';
-  let count = 0;
-  let filtered = [...xs];
-
-  const StatefulSubCounter = ({ attrs: { onClick } }) => {
-    let statefulCount = 1;
-
-    return {
-      view: ({ attrs: { count, name } }) => (
-        m('div.counter',
-          m('h2', count),
-          m('h3', `stateful count: ${statefulCount}`),
-          m('button', { onclick: onClick }, 'inc'),
-          m('button', { onclick: () => statefulCount += 1 }, 'inc stateful'),
-          m('p', name)
-        )
-      )
-    };
-  }
-
-  const Counter = () => {
-    let count = 14;
-
-    return {
-      view: ({ attrs }) => (
-        m(StatefulSubCounter, {
-          count,
-          name: attrs.name,
-          onClick: () => count += 1
-        })
-      )
+        m('p', 'here is the count: ', state.count),
+        m('button', { onclick: actions.inc }, 'increment')
+      );
     };
   };
 
-  const App = () => (
-    m('div.monospace',
-      m('input', { value, oninput: (ev) => {
-        value = ev.target.value;
-        filtered = xs.filter(x => x.name.indexOf(value) > -1)
-      } }),
-
-      m('ul',
-        filtered.map(x =>
-          // m('p', { key: x.name }, x.name)
-          m(Counter, { key: x.name, name: x.name })
-        )
-      )
+  const App = ({ state, actions }) => (
+    m('main',
+      m('h1', 'here is the main app', state.count),
+      m(Home, { state, actions })
     )
   );
 
-  m.mount(root, { view: App })
-}
+  const state = State();
+  const actions = Actions(state);
 
-function debug(tree) {
-  document.getElementById('vnode').innerHTML += `<pre>${JSON.stringify(tree, null, 2)}</pre>`;
+  mount(root, () => {
+    return m(App, { state, actions });
+  });
 }
