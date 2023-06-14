@@ -1,10 +1,12 @@
 import { strict as assert } from 'node:assert';
 import { suite } from 'flitch';
-// import beautify from 'simply-beautiful';
 import * as env from './env.js';
 import { m, mount, reset } from '../index.js';
 
-const test = suite('mount');
+const test = suite('components');
+
+const stripHtml = html => html.replace(/>(\s|\n)*</g, '><').trim();
+const assertHtml = (a, b) => assert.equal(stripHtml(a), stripHtml(b));
 
 function setup(view) {
   // setup or reset jsdom
@@ -16,9 +18,6 @@ function setup(view) {
   const redraw = mount(root, view);
   return { root, redraw, html: root.innerHTML };
 }
-
-const stripHtml = html => html.replace(/>(\s|\n)*</g, '><').trim();
-const assertHtml = (a, b) => assert.equal(stripHtml(a), stripHtml(b));
 
 test('mount app', () => {
   const App = () => m('p', 'hi');
@@ -268,5 +267,38 @@ test('fragments with null/undefined/false children', () => {
       <p>two</p>
       <button id="add">inc</button>
     </div>
+  `);
+});
+
+test('component children', () => {
+  const Layout = ({ children }) => (
+    m('div.layout',
+      children
+    )
+  );
+
+  const Person = ({ name }) => (
+    m('p', name)
+  );
+
+  const App = () => (
+    m('main',
+      m(Layout,
+        m(Person, { name: 'kevin' }),
+        m(Person, { name: 'raf' }),
+        m(Person, { name: 'brett' }),
+      )
+    )
+  );
+
+  const { html } = setup(App);
+  assertHtml(html, `
+    <main>
+      <div class="layout">
+        <p>kevin</p>
+        <p>raf</p>
+        <p>brett</p>
+      </div>
+    </main>
   `);
 });

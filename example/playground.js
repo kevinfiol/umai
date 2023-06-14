@@ -3,36 +3,66 @@ import { m, mount } from '../index.js';
 const root = document.getElementById('app');
 
 const xs = [
-  { id: 1, name: 'aaab' },
-  { id: 2, name: 'aab' },
-  { id: 3, name: 'aabb' },
-  { id: 4, name: 'abbb' },
-  { id: 5, name: 'bbba' },
-  { id: 6, name: 'bbaa' },
-  { id: 7, name: 'baaa' },
+  { count: 0, name: 'aaab' },
+  { count: 0, name: 'aab' },
+  { count: 0, name: 'aabb' },
+  { count: 0, name: 'abbb' },
+  { count: 0, name: 'bbba' },
+  { count: 0, name: 'bbaa' },
+  { count: 0, name: 'baaa' },
 ];
 
 export function runUmaiApp() {
-  let count = 0;
+  // let input = '';
+  // let filtered = [...xs];
 
-  const One = () => [
-    count === 0 &&
-      m('p', 'one')
-    ,
-    m('p', 'two')
-  ];
+  // const App = () => (
+  //   m('div',
+  //     m('table',
+  //       xs.map(x =>
+  //         m('tr',
+  //           m('td', x.count),
+  //           m('td', x.name)
+  //         )
+  //       )
+  //     ),
 
-  const App = () => (
-    m('div',
-      count === 0 &&
-        m('p', 'spinner')
-      ,
+  //     m('input', {
+  //       value: input,
+  //       oninput: ev => {
+  //         input = ev.target.value;
+  //         filtered = xs.filter(x => x.name.indexOf(input) > -1);
+  //       }
+  //     }),
 
-      m('h1', count),
-      m(One),
-      m('button', { id: 'add', onclick: () => count += 1 }, 'inc')
+  //     filtered.map(x =>
+  //       m('div', { key: x.name },
+  //         m('p', x.name),
+  //         m('button', { onclick: () => x.count += 1 }, 'add')
+  //       )
+  //     )
+  //   )
+  // )
+
+  const Layout = ({ children }) => (
+    m('div.layout',
+      children
     )
   );
+
+  const Person = ({ name }) => (
+    m('p', name)
+  );
+
+  const App = () => (
+    m('main',
+      m(Layout,
+        m(Person, { name: 'kevin' }),
+        m(Person, { name: 'raf' }),
+        m(Person, { name: 'brett' }),
+      )
+    )
+  )
 
   mount(root, App);
 }

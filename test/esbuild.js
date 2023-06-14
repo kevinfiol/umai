@@ -2,7 +2,7 @@ import esbuild from 'esbuild';
 import { resolve } from 'node:path';
 
 const OUTFILE = resolve('test/hyperscript_jsx.test.js');
-const ENTRY = resolve('test/hyperscript.jsx');
+const ENTRY = resolve('test/hyperscript_jsx.jsx');
 
 /** @type {esbuild.BuildOptions} **/
 const cfg = {

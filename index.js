@@ -50,7 +50,7 @@ let normalizeVnode = vnode =>
 
 let createInstance = vnode => {
   let ctx = vnode.props.ctx = vnode.props.ctx || new Context,
-    instance = vnode.tag(vnode.props, vnode.children);
+    instance = vnode.tag({ ...vnode.props, children: vnode.children });
 
   if (isArray(instance)) {
     instance = {
