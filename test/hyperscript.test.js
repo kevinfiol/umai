@@ -10,7 +10,7 @@ const FRAGMENT = 3;
 const COMPONENT = 4;
 const STATEFUL = 5;
 
-test.only('simple elements', () => {
+test('simple elements', () => {
   assert.deepEqual(
     m('div', 'test'),
     {

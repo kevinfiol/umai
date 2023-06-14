@@ -25,8 +25,8 @@
     "bundt": "1.1.5",
     "esbuild": "^0.18.1",
     "flitch": "0.7.3",
-    "html-prettify": "^1.0.7",
-    "jsdom": "^22.1.0"
+    "jsdom": "^22.1.0",
+    "simply-beautiful": "^0.2.14"
   },
   "keywords": [
     "vdom",
