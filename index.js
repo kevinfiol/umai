@@ -169,6 +169,9 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
       oldTail = oldVKids.length - 1,
       newTail = newVKids.length - 1;
 
+    if (oldVNode.type === FRAGMENT)
+      node = parent;
+
     // 1. patch the properties first
     for (i in { ...oldProps, ...newProps }) {
       // if the property is value, selected, or checked, compare the property on the actual dom NODE to newProps

@@ -225,7 +225,7 @@ test('fragments', () => {
   `);
 });
 
-test.skip('fragments with null/undefined/false children', () => {
+test('fragments with null/undefined/false children', () => {
   let count = 0;
 
   const One = () => [
