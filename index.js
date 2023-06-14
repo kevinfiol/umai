@@ -127,8 +127,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
   if (oldVNode != null && oldVNode.tag === newVNode.tag)
     newVNode.remove = oldVNode.remove;
 
-  if (oldVNode.type < COMPONENT && oldVNode === newVNode) {
-  } else if (oldVNode != null && oldVNode.type === TEXT && newVNode.type === TEXT) {
+  if (oldVNode != null && oldVNode.type === TEXT && newVNode.type === TEXT) {
     // they are both text nodes
     // update if the newVNode does not equal the old one
     if (oldVNode.tag !== newVNode.tag) node.nodeValue = newVNode.tag;
