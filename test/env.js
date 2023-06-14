@@ -1,6 +1,6 @@
-import { JSDOM } from 'jsdom';
+import { parseHTML } from 'linkedom';
 
-const { window } = new JSDOM('<!DOCTYPE html><html><body></body></html>');
+const { window } = parseHTML('<!DOCTYPE html><html><body></body></html>');
 let init = false;
 
 export function setup() {
