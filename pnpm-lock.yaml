@@ -10,6 +10,9 @@ devDependencies:
   flitch:
     specifier: 0.7.3
     version: 0.7.3
+  html-prettify:
+    specifier: ^1.0.7
+    version: 1.0.7
   jsdom:
     specifier: ^22.1.0
     version: 22.1.0
@@ -366,6 +369,10 @@ packages:
     engines: {node: '>=12'}
     dependencies:
       whatwg-encoding: 2.0.0
+    dev: true
+
+  /html-prettify@1.0.7:
+    resolution: {integrity: sha512-99pRsP2PV2DyWnrVibNyad7gNmzCP7AANO8jw7Z9yanWyXH9dPdqdMXGefySplroqCNdk95u7j5TLxfyJ1Cbbg==}
     dev: true
 
   /http-proxy-agent@5.0.0:

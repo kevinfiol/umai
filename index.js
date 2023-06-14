@@ -384,6 +384,8 @@ export const redraw = _ => {
     REDRAWS[i]();
 };
 
+export const reset = _ => REDRAWS = [];
+
 /** @type {import('./index.d.ts').m} **/
 export function m(tag, ...tail) {
   let vnode, key, i, tmp, classes,

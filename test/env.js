@@ -1,10 +1,17 @@
 import { JSDOM } from 'jsdom';
 
 const { window } = new JSDOM('<!DOCTYPE html><html><body></body></html>');
+let init = false;
 
 export function setup() {
-  global.window = window;
-  global.document = window.document;
+  if (!init) {
+    global.window = window;
+    global.document = window.document;
+    global.requestAnimationFrame = x => x();
+    init = true;
+  };
+
+  reset();
 }
 
 export function reset() {

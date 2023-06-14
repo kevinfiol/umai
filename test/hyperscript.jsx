@@ -4,10 +4,11 @@ import { m } from '../index.js';
 
 const test = suite('hyperscript jsx');
 
-const COMPONENT = 2;
-const ELEMENT = 1;
-const TEXT = 3;
-const FRAGMENT = 5
+const TEXT = 1;
+const ELEMENT = 2;
+const FRAGMENT = 3;
+const COMPONENT = 4;
+const STATEFUL = 5;
 
 test('simple elements', () => {
   assert.deepEqual(
