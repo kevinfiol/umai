@@ -1,6 +1,6 @@
 import { strict as assert } from 'node:assert';
 import { suite } from 'flitch';
-import beautify from 'simply-beautiful';
+// import beautify from 'simply-beautiful';
 import * as env from './env.js';
 import { m, mount, reset } from '../index.js';
 
@@ -17,7 +17,8 @@ function setup(view) {
   return { root, redraw, html: root.innerHTML };
 }
 
-const assertHtml = (a, b) => assert.equal(beautify.html(a), beautify.html(b));
+const stripHtml = html => html.replace(/>(\s|\n)*</g, '><').trim();
+const assertHtml = (a, b) => assert.equal(stripHtml(a), stripHtml(b));
 
 test('mount app', () => {
   const App = () => m('p', 'hi');
@@ -181,7 +182,7 @@ test('null/false/undefined children', () => {
       </div>
       <p>three</p>
     </div>
-  `)
+  `);
 
   const btn = document.getElementById('add');
   env.fire(btn, 'click');
@@ -194,5 +195,78 @@ test('null/false/undefined children', () => {
       </div>
       <p>three</p>
     </div>
-  `)
+  `);
+});
+
+test('fragments', () => {
+  const One = () => [
+    m('p', 'one'),
+    m('p', 'two')
+  ];
+
+  const App = () => (
+    m('div',
+      m('div',
+        m(One),
+        m('p', 'three')
+      )
+    )
+  );
+
+  const { html } = setup(App);
+  assertHtml(html, `
+    <div>
+      <div>
+        <p>one</p>
+        <p>two</p>
+        <p>three</p>
+      </div>
+    </div>
+  `);
+});
+
+test.skip('fragments with null/undefined/false children', () => {
+  let count = 0;
+
+  const One = () => [
+    count === 0 &&
+      m('p', 'one')
+    ,
+    m('p', 'two')
+  ];
+
+  const App = () => (
+    m('div',
+      count === 0 &&
+        m('p', 'spinner')
+      ,
+
+      m('h1', count),
+      m(One),
+      m('button', { id: 'add', onclick: () => count += 1 }, 'inc')
+    )
+  );
+
+  const { root } = setup(App);
+
+  assertHtml(root.innerHTML, `
+    <div>
+      <p>spinner</p>
+      <h1>0</h1>
+      <p>one</p>
+      <p>two</p>
+      <button id="add">inc</button>
+    </div>
+  `);
+
+  const btn = document.getElementById('add');
+  env.fire(btn, 'click');
+
+  assertHtml(root.innerHTML, `
+    <div>
+      <h1>1</h1>
+      <p>two</p>
+      <button id="add">inc</button>
+    </div>
+  `);
 });

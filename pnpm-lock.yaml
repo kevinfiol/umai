@@ -13,9 +13,6 @@ devDependencies:
   jsdom:
     specifier: ^22.1.0
     version: 22.1.0
-  simply-beautiful:
-    specifier: ^0.2.14
-    version: 0.2.14
 
 packages:
 
@@ -512,11 +509,6 @@ packages:
     engines: {node: '>=v12.22.7'}
     dependencies:
       xmlchars: 2.2.0
-    dev: true
-
-  /simply-beautiful@0.2.14:
-    resolution: {integrity: sha512-1tBTg4hYV2MaxC7emzFG9i9hu/PLScUKSb7iRMZqyFszpbLnXl5E95a6GxW2YuPpgL72E1lnypXnLrxwHpMH0Q==}
-    engines: {node: '>=6.0.0'}
     dev: true
 
   /source-map-support@0.5.21:

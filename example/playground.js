@@ -13,30 +13,26 @@ const xs = [
 ];
 
 export function runUmaiApp() {
-  const State = () => ({ count: 0 });
-  const Actions = state => ({ inc: () => { state.count += 1; console.log('updated state.count', state.count); } });
+  let count = 0;
 
-  const Home = () => {
-    return ({ state, actions }) => {
-      console.log('render Home', state.count);
-      return m('div',
-        m('p', 'here is the count: ', state.count),
-        m('button', { onclick: actions.inc }, 'increment')
-      );
-    };
-  };
+  const One = () => [
+    count === 0 &&
+      m('p', 'one')
+    ,
+    m('p', 'two')
+  ];
 
-  const App = ({ state, actions }) => (
-    m('main',
-      m('h1', 'here is the main app', state.count),
-      m(Home, { state, actions })
+  const App = () => (
+    m('div',
+      count === 0 &&
+        m('p', 'spinner')
+      ,
+
+      m('h1', count),
+      m(One),
+      m('button', { id: 'add', onclick: () => count += 1 }, 'inc')
     )
   );
 
-  const state = State();
-  const actions = Actions(state);
-
-  mount(root, () => {
-    return m(App, { state, actions });
-  });
+  mount(root, App);
 }
