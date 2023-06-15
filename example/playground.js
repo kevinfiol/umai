@@ -44,25 +44,32 @@ export function runUmaiApp() {
   //   )
   // )
 
-  const Layout = ({ children }) => (
-    m('div.layout',
-      children
-    )
-  );
+  let count = 0;
 
-  const Person = ({ name }) => (
-    m('p', name)
-  );
+  const One = () => [
+    count === 0 &&
+      m('p', 'one')
+    ,
+    m('p', 'two')
+  ];
 
-  const App = () => (
-    m('main',
-      m(Layout,
-        m(Person, { name: 'kevin' }),
-        m(Person, { name: 'raf' }),
-        m(Person, { name: 'brett' }),
-      )
+  const Nested = () => m('[',
+    m('[',
+      m(One)
     )
   )
+
+  const App = () => (
+    m('div',
+      count === 0 &&
+        m('p', 'spinner')
+      ,
+
+      m('h1', count),
+      m(Nested),
+      m('button', { id: 'add', onclick: () => count += 1 }, 'inc')
+    )
+  );
 
   mount(root, App);
 }

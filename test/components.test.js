@@ -234,6 +234,12 @@ test('fragments with null/undefined/false children', () => {
     m('p', 'two')
   ];
 
+  const Nested = () => m('[',
+    m('[',
+      m(One)
+    )
+  )
+
   const App = () => (
     m('div',
       count === 0 &&
@@ -241,7 +247,7 @@ test('fragments with null/undefined/false children', () => {
       ,
 
       m('h1', count),
-      m(One),
+      m(Nested),
       m('button', { id: 'add', onclick: () => count += 1 }, 'inc')
     )
   );
@@ -301,4 +307,72 @@ test('component children', () => {
       </div>
     </main>
   `);
+});
+
+test('remove calls', () => {
+  let flag = true;
+  let calls = [];
+
+  const Comp = ({ ctx }) => {
+    ctx.remove(() => {
+      calls.push('2');
+    })
+
+    return () => (
+      m('div', {
+        dom: () => {
+          return () => calls.push('1');
+        }
+      }, 'comp')
+    )
+  };
+
+  const Nested = ({ ctx }) => {
+    ctx.remove(() => calls.push('4'));
+
+    return () => (
+      m('section', {
+        dom: () => {
+          return () => calls.push('3')
+        }
+      },
+        m(Comp)
+      )
+    );
+  };
+
+  const App = () => (
+    m('main',
+      m('h1', 'head'),
+      flag && m(Nested),
+      m('button', { id: 'switch', onclick: () => flag = false }, 'switch')
+    )
+  );
+
+  const { root } = setup(App);
+
+  assertHtml(root.innerHTML, `
+    <main>
+      <h1>head</h1>
+      <section>
+        <div>comp</div>
+      </section>
+      <button id="switch">switch</button>
+    </main>
+  `);
+
+  assert.deepEqual(calls, []);
+
+  const btn = document.getElementById('switch');
+  env.fire(btn, 'click');
+
+  assertHtml(root.innerHTML, `
+    <main>
+      <h1>head</h1>
+      <button id="switch">switch</button>
+    </main>
+  `);
+
+  // ensure correct removal order
+  assert.deepEqual(calls, ['1', '2', '3', '4']);
 });

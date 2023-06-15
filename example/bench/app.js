@@ -53,5 +53,6 @@ const App = () => (
 );
 
 export function runApp() {
+  console.log('hello?');
   mount(document.getElementById('app'), App);
 }
