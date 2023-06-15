@@ -1,8 +1,8 @@
 import esbuild from 'esbuild';
 import { resolve } from 'node:path';
 
-const OUTFILE = resolve('test/hyperscript_jsx.test.js');
-const ENTRY = resolve('test/hyperscript_jsx.jsx');
+const OUTFILE = resolve('test/jsx.test.js');
+const ENTRY = resolve('test/jsx.jsx');
 
 /** @type {esbuild.BuildOptions} **/
 const cfg = {

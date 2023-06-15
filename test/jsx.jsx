@@ -2,7 +2,7 @@ import { suite } from 'flitch';
 import { strict as assert } from 'node:assert';
 import { m } from '../index.js';
 
-const test = suite('hyperscript jsx');
+const test = suite('jsx');
 
 const TEXT = 1;
 const ELEMENT = 2;
