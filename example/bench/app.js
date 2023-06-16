@@ -41,11 +41,13 @@ const App = () => (
     m('button', { onclick: swapRows }, 'Swap Rows'),
 
     m('table',
-      data.map((row) =>
-        m('tr', { key: row.id, style: selected === row.id ? 'background-color:red;' : '' },
-          m('td', row.id),
-          m('td', m('button', { onclick: () => selected = row.id }, row.label.get())),
-          m('td', m('button', { onclick: () => remove(row.id) }, 'remove'))
+      m('tbody',
+        data.map((row) =>
+          m('tr', { key: row.id, style: selected === row.id ? 'background-color:red;' : '' },
+            m('td', row.id),
+            m('td', m('button', { onclick: () => selected = row.id }, row.label.get())),
+            m('td', m('button', { onclick: () => remove(row.id) }, 'remove'))
+          )
         )
       )
     )

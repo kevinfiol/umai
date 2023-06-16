@@ -12,12 +12,7 @@ let NIL = void 0,
   isStr = x => typeof x === 'string',
   isFn = x => typeof x === 'function',
   isObj = x => x !== null && !isArray(x) && typeof x === 'object',
-  getKey = v => v == null ? v : v.key,
-  addChildren = (x, children) => {
-    if (isArray(x)) for (let i = 0; i < x.length; i++) addChildren(x[i], children);
-    else if (isStr(x) || typeof x === 'number') children.push({ type: TEXT, tag: x });
-    else children.push(x);
-  };
+  getKey = v => v == null ? v : v.key;
 
 class Context {
   remove(evt) {
@@ -252,6 +247,10 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
         removeChild(node, oldVKids[oldHead++]);
       }
     } else {
+      if (oldVNode.tag === 'tbody') {
+        debugger;
+      }
+
       // grab all the old keys from the old children
       let keyed = {},
         newKeyed = {},
@@ -293,9 +292,8 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
           continue;
         }
 
-        // otherwise, if the new child is keyless, and the oldVNode is an element vnode
         // (remember, this is not a child, oldVNode is the PARENT during this call of patch)
-        if (newKey == null || oldVNode.type === ELEMENT) {
+        if (newKey == null) {
           if (oldKey == null) {
             patch(
               node,
@@ -362,6 +360,12 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
 
   return (newVNode.node = node);
 }
+
+let addChildren = (x, children) => {
+  if (isArray(x)) for (let i = 0; i < x.length; i++) addChildren(x[i], children);
+  else if (isStr(x) || typeof x === 'number') children.push({ type: TEXT, tag: x });
+  else children.push(x);
+};
 
 export function mount(node, view) {
   node.innerHTML = '<a></a>';
