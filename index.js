@@ -247,10 +247,6 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
         removeChild(node, oldVKids[oldHead++]);
       }
     } else {
-      if (oldVNode.tag === 'tbody') {
-        debugger;
-      }
-
       // grab all the old keys from the old children
       let keyed = {},
         newKeyed = {},
