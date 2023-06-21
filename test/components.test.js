@@ -197,7 +197,7 @@ test('null/false/undefined children', () => {
   `);
 });
 
-test('fragments', () => {
+test('non-component fragments', () => {
   const One = () => [
     m('p', 'one'),
     m('p', 'two')
@@ -206,7 +206,7 @@ test('fragments', () => {
   const App = () => (
     m('div',
       m('div',
-        m(One),
+        One(),
         m('p', 'three')
       )
     )
@@ -234,11 +234,11 @@ test('fragments with null/undefined/false children', () => {
     m('p', 'two')
   ];
 
-  const Nested = () => m('[',
-    m('[',
-      m(One)
-    )
-  )
+  const Nested = () => [,
+    [
+      One()
+    ]
+  ];
 
   const App = () => (
     m('div',
@@ -247,7 +247,7 @@ test('fragments with null/undefined/false children', () => {
       ,
 
       m('h1', count),
-      m(Nested),
+      Nested(),
       m('button', { id: 'add', onclick: () => count += 1 }, 'inc')
     )
   );

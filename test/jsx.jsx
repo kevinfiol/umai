@@ -130,20 +130,12 @@ test('fragments', () => {
       props: {},
       children: [
         {
-          tag: '[',
-          type: FRAGMENT,
-          key: undefined,
+          tag: 'b',
+          type: ELEMENT,
           props: {},
+          key: undefined,
           children: [
-            {
-              tag: 'b',
-              type: ELEMENT,
-              props: {},
-              key: undefined,
-              children: [
-                { tag: 'hi', type: TEXT }
-              ]
-            }
+            { tag: 'hi', type: TEXT }
           ]
         }
       ]

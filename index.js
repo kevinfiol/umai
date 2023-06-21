@@ -1,10 +1,8 @@
 let NIL = void 0,
   TEXT = 1,
   ELEMENT = 2,
-  FRAGMENT = 3,
   COMPONENT = 4,
   STATEFUL = 5,
-  FRAGMENT_TAG = '[',
   REDRAWS = [],
   RESERVED = ['dom'],
   REMOVES = [],
@@ -40,14 +38,7 @@ let normalizeVnode = vnode =>
 let createInstance = vnode => {
   let instance = vnode.tag({ ...vnode.props, children: vnode.children });
 
-  if (isArray(instance)) {
-    instance = {
-      props: vnode.props,
-      tag: FRAGMENT_TAG,
-      type: FRAGMENT,
-      children: instance.flat(Infinity)
-    };
-  } else if (isFn(instance)) {
+  if (isFn(instance)) {
     vnode.type = STATEFUL;
     vnode.remove = REMOVES.pop();
     instance = {
@@ -73,14 +64,11 @@ let createNode = (vnode, env) => {
     props = vnode.props,
     node = vnode.type === TEXT
       ? document.createTextNode(vnode.tag)
-      : vnode.type === FRAGMENT
-      ? document.createDocumentFragment()
       : document.createElement(vnode.tag);
 
-  if (vnode.type !== FRAGMENT)
-    for (i in props) patchProp(node, i, props[i], env);
+  for (i in props) patchProp(node, i, props[i], env);
 
-  if (vnode.type === ELEMENT || vnode.type === FRAGMENT)
+  if (vnode.type === ELEMENT)
     for (i = 0; i < vnode.children.length; i++)
       node.appendChild(
         createNode(
@@ -153,9 +141,6 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
       newHead = 0,
       oldTail = oldVKids.length - 1,
       newTail = newVKids.length - 1;
-
-    if (oldVNode.type === FRAGMENT)
-      node = parent;
 
     // 1. patch the properties first
     for (let i in { ...oldProps, ...newProps }) {
@@ -380,14 +365,12 @@ export const reset = _ => REDRAWS = [];
 
 /** @type {import('./index.d.ts').m} **/
 export function m(tag, ...tail) {
-  let vnode, key, i, tmp, classes,
+  let key, i, tmp, classes,
     props = {},
     children = [],
     first = tail[0],
     type = isFn(tag)
       ? COMPONENT
-      : tag === FRAGMENT_TAG
-      ? FRAGMENT
       : ELEMENT;
 
   // compensate for when jsx passes null for the first tail item
@@ -418,8 +401,10 @@ export function m(tag, ...tail) {
   }
 
   addChildren(tail, children); // will recurse through tail and push valid childs to `children`
-  vnode = { type, tag, key, props: { ...props }, children };
-  return vnode;
+
+  return tag === '[' // jsx fragment
+    ? children
+    : { type, tag, key, props: { ...props }, children };
 }
 
 m.retain = _ => m(RETAIN_KEY);
