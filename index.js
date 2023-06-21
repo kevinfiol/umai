@@ -158,7 +158,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
       node = parent;
 
     // 1. patch the properties first
-    for (i in { ...oldProps, ...newProps }) {
+    for (let i in { ...oldProps, ...newProps }) {
       // if the property is value, selected, or checked, compare the property on the actual dom NODE to newProps
       // otherwise, compare oldProps[i] to newProps[i]
       if (
@@ -398,7 +398,7 @@ export function m(tag, ...tail) {
     [{ key, ...props }, ...tail] = tail;
 
   if (isStr(tag)) {
-    if (props.className && props.class)
+    if (props.className)
       props.class = props.className;
 
     [tag, ...classes] = tag.split('.');
