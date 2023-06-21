@@ -1,7 +1,7 @@
 import { strict as assert } from 'node:assert';
 import { suite } from 'flitch';
 import * as env from './env.js';
-import { m, mount, reset } from '../index.js';
+import { m, mount, reset, onRemove } from '../index.js';
 
 const test = suite('components');
 
@@ -313,8 +313,8 @@ test('remove calls', () => {
   let flag = true;
   let calls = [];
 
-  const Comp = ({ ctx }) => {
-    ctx.remove(() => {
+  const Comp = () => {
+    onRemove(() => {
       calls.push('2');
     })
 
@@ -327,8 +327,8 @@ test('remove calls', () => {
     )
   };
 
-  const Nested = ({ ctx }) => {
-    ctx.remove(() => calls.push('4'));
+  const Nested = () => {
+    onRemove(() => calls.push('4'));
 
     return () => (
       m('section', {

@@ -6,19 +6,13 @@ let NIL = void 0,
   STATEFUL = 5,
   FRAGMENT_TAG = '[',
   REDRAWS = [],
-  RESERVED = ['dom', 'ctx'],
+  RESERVED = ['dom'],
   REMOVES = [],
   isArray = Array.isArray,
   isStr = x => typeof x === 'string',
   isFn = x => typeof x === 'function',
   isObj = x => x !== null && !isArray(x) && typeof x === 'object',
   getKey = v => v == null ? v : v.key;
-
-class Context {
-  remove(evt) {
-    REMOVES.push(evt);
-  }
-}
 
 let patchProp = (node, name, newProp, { redraw }) => {
   if (RESERVED.includes(name)) {
@@ -44,8 +38,7 @@ let normalizeVnode = vnode =>
     : { type: TEXT, tag: '' };
 
 let createInstance = vnode => {
-  let ctx = vnode.props.ctx = vnode.props.ctx || new Context,
-    instance = vnode.tag({ ...vnode.props, children: vnode.children });
+  let instance = vnode.tag({ ...vnode.props, children: vnode.children });
 
   if (isArray(instance)) {
     instance = {
@@ -65,7 +58,6 @@ let createInstance = vnode => {
     };
   }
 
-  instance.props.ctx = ctx;
   instance.key = vnode.key;
   return instance;
 };
@@ -106,7 +98,7 @@ let createNode = (vnode, env) => {
 let getRemoves = (vnode, removes = []) => {
   if (isFn(vnode.remove)) removes.push(vnode.remove);
   if (vnode.children !== NIL)
-    for (let i = 0, len = vnode.children.length; i < len; i++)
+    for (let i = 0; i < vnode.children.length; i++)
       getRemoves(vnode.children[i], removes);
   if (vnode.instance !== NIL) getRemoves(vnode.instance, removes);
   return removes;
@@ -139,7 +131,6 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
     if (oldVNode != null) removeChild(parent, oldVNode);
   } else if (oldVNode.type === STATEFUL && oldVNode.tag === newVNode.tag) {
     newVNode.type = STATEFUL;
-    newVNode.props.ctx = oldVNode.props.ctx;
     newVNode.instance = {
       ...oldVNode.instance,
       props: newVNode.props,
@@ -150,8 +141,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
     newVNode.instance = createInstance(newVNode);
     patch(parent, node, oldVNode.instance, newVNode.instance, env);
   } else {
-    let i,
-      tmpVKid,
+    let tmpVKid,
       oldVKid,
       oldKey,
       newKey,
@@ -249,11 +239,10 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
     } else {
       // grab all the old keys from the old children
       let keyed = {},
-        newKeyed = {},
-        i = oldHead;
+        newKeyed = {};
 
-      for (; i <= oldTail; i++) {
-        if ((oldKey = oldVKids[i].key) != null) {
+      for (let i = oldHead; i <= oldTail; i++) {
+        if ((oldKey = getKey(oldVKids[i])) != null) {
           keyed[oldKey] = oldVKids[i];
         }
       }
@@ -386,6 +375,7 @@ export const redraw = _ => {
     REDRAWS[i]();
 };
 
+export const onRemove = evt => REMOVES.push(evt);
 export const reset = _ => REDRAWS = [];
 
 /** @type {import('./index.d.ts').m} **/
@@ -408,6 +398,9 @@ export function m(tag, ...tail) {
     [{ key, ...props }, ...tail] = tail;
 
   if (isStr(tag)) {
+    if (props.className && props.class)
+      props.class = props.className;
+
     [tag, ...classes] = tag.split('.');
     classes = classes.join(' ');
 
