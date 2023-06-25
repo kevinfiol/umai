@@ -1,4 +1,4 @@
-import { m, mount } from '../index.js';
+import { m, mount, memo } from '../index.js';
 
 const root = document.getElementById('app');
 
@@ -12,7 +12,7 @@ const xs = [
   { count: 0, name: 'baaa' },
 ];
 
-export function runUmaiApp() {
+export function runApp() {
   // let input = '';
   // let filtered = [...xs];
 
@@ -44,32 +44,39 @@ export function runUmaiApp() {
   //   )
   // )
 
-  let count = 0;
+  let calls = 0;
+  let names = ['a', 'b', 'b', 'c'];
+  let current = 0;
 
-  const One = () => [
-    count === 0 &&
-      m('p', 'one')
-    ,
-    m('p', 'two')
-  ];
+  // const Foo = ({ name }, oldProps) => {
+  //   if (name === oldProps.name)
+  //     return m.retain();
 
-  const Nested = () => m('[',
-    m('[',
-      m(One)
-    )
-  )
+  //   calls += 1;
+  //   console.log(calls);
+  //   return m('div',
+  //     m('p', name)
+  //   )
+  // };
+
+  const Foo = memo(() => {
+    console.log('mount FOo!!');
+    return ({ name }) => {
+      calls += 1;
+      console.log(calls);
+      return m('div',
+        m('p', name)
+      )
+    };
+  });
 
   const App = () => (
     m('div',
-      count === 0 &&
-        m('p', 'spinner')
-      ,
-
-      m('h1', count),
-      m(Nested),
-      m('button', { id: 'add', onclick: () => count += 1 }, 'inc')
+      m('button', { id: 'next', onclick: () => current += 1 }, 'next'),
+      m(Foo, { name: names[current] })
     )
   );
+
 
   mount(root, App);
 }

@@ -1,8 +1,6 @@
 # umai
 
-A small UI library.
-
-`umai` leverages the highly optimized diff algorithm of [hyperapp](https://github.com/jorgebucaran/hyperapp), and provides an ergonomic API for creating stateless or stateful UIs that will be familiar to users of [Mithril.js](https://github.com/MithrilJS/mithril.js) or React.
+A small UI library with an ergonomic API for creating stateless or stateful UIs that will be familiar to users of [Mithril.js](https://github.com/MithrilJS/mithril.js) or React.
 
 ## Install
 
@@ -11,8 +9,6 @@ npm install umai
 ```
 
 ## Usage
-
-Here is a simple counter example:
 
 ```js
 import { m, mount } from 'umai';
@@ -35,7 +31,7 @@ If you prefer JSX, you can configure your favorite compiler/bundler to transform
 {
   "compilerOptions": {
     "jsxFactory": "m",
-    "jsxFragmentFactory": "m.Fragment"
+    "jsxFragmentFactory": "'['"
   }
 }
 ```
@@ -62,7 +58,7 @@ const List = () => (
 
 ### Passing `children`
 ```jsx
-const Layout = ({ title }, children) => (
+const Layout = ({ title, children }) => (
   <div class="container">
     <h1 class="page-title">{title}</h1>
     {children}
@@ -99,17 +95,21 @@ const Todo = () => (
 );
 ```
 
-In the event that you'd like to use local state (like `useState` in React), you can create a stateful component. Stateful components are functions that return stateless components (or commonly known in [Mithril.js](https://mithril.js.org) as "closure components"). Stateful components look like this:
+In the event that you'd like to use local component state (like `useState` in React), you can create a stateful component. Stateful components are functions that return stateless components (or commonly known in [Mithril.js](https://mithril.js.org) as "closure components"). Stateful components look like this:
 
 ```jsx
-const StatefulComponent = (initialProps, initialChildren) => {
-  return (props, children) => (
+const StatefulComponent = (initialProps) => {
+  let localVariable = 'hello world';
+
+  return (props) => (
     <div>
-      ...
+      {localVariable}
     </div>
   );
 };
 ```
+
+In the example above, the inner function (the stateless component) is run on every re-render, whereas the code before that (initializing `localVariable`) is only run once when the component mounts.
 
 Here is the same Todo component as above, but as a stateful component.
 
@@ -133,3 +133,9 @@ const Todo = () => {
   );
 };
 ```
+
+## Credits
+
+`umai` is a hard fork of [hyperapp](https://github.com/jorgebucaran/hyperapp); credit goes to all Hyperapp maintainers.
+
+`umai` is heavily inspired by [Mithril.js](https://github.com/MithrilJS/mithril.js).

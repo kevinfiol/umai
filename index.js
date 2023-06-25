@@ -3,6 +3,7 @@ let NIL = void 0,
   ELEMENT = 2,
   COMPONENT = 4,
   STATEFUL = 5,
+  RETAIN_KEY = '=',
   REDRAWS = [],
   RESERVED = ['dom'],
   REMOVES = [],
@@ -35,12 +36,28 @@ let normalizeVnode = vnode =>
     ? vnode
     : { type: TEXT, tag: '' };
 
-let createInstance = vnode => {
-  let instance = vnode.tag({ ...vnode.props, children: vnode.children });
+let propsChanged = (a, b) => {
+  for (let k in a) if (a[k] !== b[k]) return true;
+  for (let k in b) if (a[k] !== b[k]) return true;
+};
 
-  if (isFn(instance)) {
+let createInstance = (vnode, oldVNode) => {
+  let instance,
+    memo = vnode.tag.memo,
+    oldProps = oldVNode ? oldVNode.props : NIL,
+    newProps = vnode.props;
+
+  if (oldProps && memo && !propsChanged(oldProps, newProps))
+    instance = oldVNode.instance;
+  else
+    instance = vnode.tag({ ...newProps, children: vnode.children }, oldProps || {});
+
+  if (instance.tag === RETAIN_KEY)
+    instance = oldVNode.instance;
+  else if (isFn(instance)) {
     vnode.type = STATEFUL;
     vnode.remove = REMOVES.pop();
+    instance.memo = memo;
     instance = {
       ...vnode,
       type: COMPONENT,
@@ -102,7 +119,9 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
   if (oldVNode != null && oldVNode.tag === newVNode.tag)
     newVNode.remove = oldVNode.remove;
 
-  if (oldVNode != null && oldVNode.type === TEXT && newVNode.type === TEXT) {
+  if (oldVNode === newVNode) {
+    // memoized
+  } else if (oldVNode != null && oldVNode.type === TEXT && newVNode.type === TEXT) {
     // they are both text nodes
     // update if the newVNode does not equal the old one
     if (oldVNode.tag !== newVNode.tag) node.nodeValue = newVNode.tag;
@@ -126,7 +145,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
     };
     patch(parent, node, oldVNode.instance, newVNode.instance, env);
   } else if (oldVNode.type === COMPONENT && oldVNode.tag === newVNode.tag) {
-    newVNode.instance = createInstance(newVNode);
+    newVNode.instance = createInstance(newVNode, oldVNode);
     patch(parent, node, oldVNode.instance, newVNode.instance, env);
   } else {
     let tmpVKid,
@@ -362,6 +381,7 @@ export const redraw = _ => {
 
 export const onRemove = evt => REMOVES.push(evt);
 export const reset = _ => REDRAWS = [];
+export const memo = cmp => (cmp.memo = 1) && cmp;
 
 /** @type {import('./index.d.ts').m} **/
 export function m(tag, ...tail) {

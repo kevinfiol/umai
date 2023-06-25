@@ -1,7 +1,7 @@
 import { strict as assert } from 'node:assert';
 import { suite } from 'flitch';
 import * as env from './env.js';
-import { m, mount, reset, onRemove } from '../index.js';
+import { m, mount, reset, onRemove, memo } from '../index.js';
 
 const test = suite('components');
 
@@ -375,4 +375,129 @@ test('remove calls', () => {
 
   // ensure correct removal order
   assert.deepEqual(calls, ['1', '2', '3', '4']);
+});
+
+test('memoization', () => {
+  let calls = 0;
+  let names = ['a', 'b', 'b', 'c'];
+  let current = 0;
+
+  const Foo = memo(({ name }) => {
+    calls += 1;
+    return m('div',
+      m('p', name)
+    )
+  });
+
+  const App = () => (
+    m('div',
+      m('button', { id: 'next', onclick: () => current += 1 }, 'next'),
+      m(Foo, { name: names[current] })
+    )
+  );
+
+  const { html } = setup(App);
+  const button = document.getElementById('next');
+
+  assertHtml(html, `
+    <div>
+      <button id="next">next</button>
+      <div>
+        <p>a</p>
+      </div>
+    </div>
+  `);
+
+  assert.equal(calls, 1); // a, first render
+  env.fire(button, 'click');
+  assert.equal(calls, 2); // b
+  env.fire(button, 'click');
+  assert.equal(calls, 2); // we passed b again, so do not rerender
+  env.fire(button, 'click');
+  assert.equal(calls, 3); // c
+});
+
+test('manual memoization', () => {
+  let calls = 0;
+  let names = ['a', 'b', 'b', 'c'];
+  let current = 0;
+
+  const Foo = ({ name }, oldProps) => {
+    if (name === oldProps.name)
+      return m.retain();
+
+    calls += 1;
+    return m('div',
+      m('p', name)
+    );
+  };
+
+  const App = () => (
+    m('div',
+      m('button', { id: 'next', onclick: () => current += 1 }, 'next'),
+      m(Foo, { name: names[current] })
+    )
+  );
+
+  const { html } = setup(App);
+  const button = document.getElementById('next');
+
+  assertHtml(html, `
+    <div>
+      <button id="next">next</button>
+      <div>
+        <p>a</p>
+      </div>
+    </div>
+  `);
+
+  assert.equal(calls, 1); // a, first render
+  env.fire(button, 'click');
+  assert.equal(calls, 2); // b
+  env.fire(button, 'click');
+  assert.equal(calls, 2); // we passed b again, so do not rerender
+  env.fire(button, 'click');
+  assert.equal(calls, 3); // c
+});
+
+test('memoize stateful component', () => {
+  let calls = 0;
+  let names = ['a', 'b', 'b', 'c'];
+  let current = 0;
+
+  const Foo = memo(() => {
+    return ({ name }) => {
+      calls += 1;
+      return m('div',
+        m('p', name)
+      )
+    };
+  });
+
+  const App = () => (
+    m('div',
+      m('button', { id: 'next', onclick: () => current += 1 }, 'next'),
+      m(Foo, { name: names[current] })
+    )
+  );
+
+  const { html } = setup(App);
+  const button = document.getElementById('next');
+
+  assertHtml(html, `
+    <div>
+      <button id="next">next</button>
+      <div>
+        <p>a</p>
+      </div>
+    </div>
+  `);
+
+  assert.equal(calls, 1); // a, first render
+  env.fire(button, 'click');
+  assert.equal(calls, 2); // b
+  env.fire(button, 'click');
+  assert.equal(calls, 2); // we passed b again, so do not rerender
+  env.fire(button, 'click');
+  assert.equal(calls, 3); // c
 });
