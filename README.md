@@ -1,6 +1,6 @@
 # umai
 
-A small UI library with an ergonomic API for creating stateless or stateful UIs that will be familiar to users of [Mithril.js](https://github.com/MithrilJS/mithril.js) or React.
+A small UI library with an ergonomic API for creating UIs that will be familiar to users of [Mithril.js](https://github.com/MithrilJS/mithril.js) or React.
 
 ## Install
 
@@ -51,7 +51,7 @@ const MyComponent = () => (
 Use `mount` to mount your application on an element. `mount` takes two arguments:
 
 1. An [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element)
-2. A stateless component (A function that returns a virtual DOM node)
+2. A stateless component (a function that returns a virtual DOM node)
 
 ```jsx
 const el = document.getElementById('app');
@@ -61,9 +61,9 @@ mount(el, App);
 
 ### Components
 
-`umai` components (stateless components) are functions that return pieces of your UI. Components accept an object of properties as their first argument.
+`umai` components (stateless components) are functions that return pieces of your UI. Components accept an object of properties (`props`) as their first argument.
 
-Below is an example of a `User` and a `List` component. The `User` component accepts a prop, `name`. In `List`, we pass different values for the `name` prop to multiple instances of `User` that we wish to display.
+Below is an example of a `User` and a `List` component. The `User` component accepts a prop, `name`. In `List`, we pass different values for the `name` prop to different instances of `User` that we wish to display.
 
 ```jsx
 const User = (props) => (
@@ -145,7 +145,7 @@ const getUsers = () => {
 const Dashboard = () => (
   <div>
     {!users.length &&
-      <p>there are no users</p>
+      <p>There are no users!</p>
     }
 
     {users.length && users.map(user =>
@@ -153,7 +153,7 @@ const Dashboard = () => (
     )}
 
     <button onclick={getUsers}>
-      fetch users
+      Retrieve Users
     </button>
   </div>
 );
@@ -161,7 +161,7 @@ const Dashboard = () => (
 
 ## Stateful Components
 
-In the event that you'd like to use local component state (like `useState` in React), you can create a stateful component. Stateful components are functions that return stateless components (or commonly known in [Mithril.js](https://mithril.js.org) as "closure components").
+To use local component state (like `useState` in React), you can create a stateful component. Stateful components are functions that return stateless components (or commonly known in [Mithril.js](https://mithril.js.org) as "closure components").
 
 ```jsx
 const StatefulComponent = (initialProps) => {
@@ -255,7 +255,7 @@ const User = memo((props) => (
 ));
 ```
 
-In the case that you'd like more control over when to re-render, all components are passed their old props as a second argument. You can use this in conjunction with `m.retain` to return the old virtual DOM node.
+If you'd like more control over when to re-render, all components are passed their old props as a second argument. You can use this in conjunction with `m.retain` to return the old virtual DOM node.
 
 ```jsx
 import { m } from 'umai';
@@ -274,6 +274,6 @@ const User = (props, oldProps) => {
 
 ## Credits
 
-`umai` is a hard fork of [hyperapp](https://github.com/jorgebucaran/hyperapp); credit goes to all Hyperapp maintainers.
+`umai` is a hard fork of [hyperapp](https://github.com/jorgebucaran/hyperapp). Credit goes to all Hyperapp maintainers.
 
 `umai` is heavily inspired by [Mithril.js](https://github.com/MithrilJS/mithril.js).
