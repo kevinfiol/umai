@@ -272,6 +272,46 @@ const User = (props, oldProps) => {
 };
 ```
 
+### Fragments
+
+`umai` features minimal fragment support. There are two main caveats to keep in mind:
+  * Keyed fragments are not supported
+  * Components must return virtual DOM nodes.
+
+```jsx
+const Users = () => (
+  <>
+    <p>kevin<p>
+    <p>rafael</p>
+  </>
+);
+
+const App = () => (
+  <div>
+    {/* ✗ Not OK! umai components must return a virtual DOM node */}
+    <Users />
+    
+    {/* ✓ OK! A Factory Function that returns a fragment */}
+    {Users()}
+  </div>
+);
+```
+
+If you are using the hyperscript API (`m`), arrays are interpreted as fragments.
+
+```jsx
+const Users = () => [
+  m('p', 'kevin'),
+  m('p', 'rafael')
+];
+
+const App = () => (
+  m('div',
+    Users()
+  )
+);
+```
+
 ## Credits
 
 `umai` is a hard fork of [hyperapp](https://github.com/jorgebucaran/hyperapp). Credit goes to all Hyperapp maintainers.
