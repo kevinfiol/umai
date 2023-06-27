@@ -1,6 +1,6 @@
 # umai
 
-A small UI library with an ergonomic API.
+A [small](https://bundlephobia.com/package/umai) UI library with an ergonomic API.
 
 ## Install
 
