@@ -1,4 +1,4 @@
 node_modules
 .DS_Store
 dist
-test/hyperscript_jsx.test.js
+test/jsx.test.js
