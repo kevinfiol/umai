@@ -1,6 +1,6 @@
 # umai
 
-A small UI library with an ergonomic API for creating UIs that will be familiar to users of [Mithril.js](https://github.com/MithrilJS/mithril.js) or React.
+A small UI library with an ergonomic API.
 
 ## Install
 
@@ -35,6 +35,8 @@ If you prefer JSX, you can configure your favorite compiler/bundler to transform
   }
 }
 ```
+
+See [here](./test/esbuild.js) for an example.
 
 In order to use JSX, the factory function (`m`) must be imported at the top of each of your JSX files.
 
