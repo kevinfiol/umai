@@ -223,6 +223,49 @@ const App = () => (
 );
 ```
 
+### `dom` property
+
+DOM nodes are passed to the `dom` handler immediately upon being created.
+
+```jsx
+const Description = () => (
+  /* logs `p` Node to the console */
+  <p dom={(node) => console.log(node)}>
+    hello world
+  </p>
+);
+```
+
+You may optionally return a function that will be invoked upon Node removal.
+```jsx
+const Description = () => (
+  /* logs `p` Node to the console */
+  <p dom={(node) => {
+    console.log('created p node!');
+    return () => console.log('removed p node!');
+  }}>
+    hello world
+  </p>
+);
+```
+
+When used with stateful components, the `dom` property may be used to store references to DOM elements (similar to `ref`/`useRef` in React). This is useful for third-party library integration.
+```jsx
+const Scrollbox = () => {
+  let containerEl;
+
+  return ({ loremIpsum }) => (
+    <div dom={(node) => containerEl = node}>
+      {loremIpsum}
+
+      <button onclick={() => containerEl.scrollTop = 0;}>
+        scroll to top
+      </button>
+    </div>
+  );
+};
+```
+
 ### `onRemove` hook
 
 You can trigger events when a stateful component unmounts using the `onRemove` hook.
