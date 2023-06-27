@@ -36,7 +36,7 @@ If you prefer JSX, you can configure your favorite compiler/bundler to transform
 }
 ```
 
-See [here](./test/esbuild.js) for an example.
+See [test/esbuild.js](./test/esbuild.js) for an example esbuild configuration.
 
 In order to use JSX, the factory function (`m`) must be imported at the top of each of your JSX files.
 
