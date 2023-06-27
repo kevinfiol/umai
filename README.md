@@ -1,5 +1,9 @@
 # umai
 
+![umai](https://github.com/kevinfiol/umai/assets/4752973/a8f5254f-afdf-4922-b18f-3d56edd9cc86)
+
+*Logo by [twitter.com/haggle](https://twitter.com/haggle)*
+
 A [small](https://bundlephobia.com/package/umai) UI library with an ergonomic API.
 
 ## Install
