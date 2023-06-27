@@ -164,7 +164,7 @@ const Dashboard = () => (
 );
 ```
 
-## Stateful Components
+### Stateful Components
 
 To use local component state (like `useState` in React), you can create a stateful component. Stateful components are functions that return stateless components (or commonly known in [Mithril.js](https://mithril.js.org) as "closure components").
 
