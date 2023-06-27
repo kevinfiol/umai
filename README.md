@@ -1,6 +1,6 @@
 # umai
 
-![umai](https://github.com/kevinfiol/umai/assets/4752973/a8f5254f-afdf-4922-b18f-3d56edd9cc86)
+![umai](./umai.png)
 
 *Logo by [twitter.com/haggle](https://twitter.com/haggle)*
 
