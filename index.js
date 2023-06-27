@@ -130,7 +130,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
     // or the old vnode does not exist
     // there needs to be a node replacement
     node = parent.insertBefore(
-      createNode((newVNode = normalizeVnode(newVNode, oldVNode)), env),
+      createNode((newVNode = normalizeVnode(newVNode)), env),
       node
     );
 
@@ -161,10 +161,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
       oldTail = oldVKids.length - 1,
       newTail = newVKids.length - 1;
 
-    // 1. patch the properties first
     for (let i in { ...oldProps, ...newProps }) {
-      // if the property is value, selected, or checked, compare the property on the actual dom NODE to newProps
-      // otherwise, compare oldProps[i] to newProps[i]
       if (
         (i === "value" || i === "selected" || i === "checked"
           ? node[i]
@@ -174,13 +171,8 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
       }
     }
 
-    // 2. patch children from top to bottom
-    // loop while we are in the bounds of the new children AND the old children
+    // patch children from top to bottom
     while (newHead <= newTail && oldHead <= oldTail) {
-      // if either the old first child isn't keyed
-      // or if the old first child's key doesn't match the new first child key,
-      // BREAK
-      // so this means if you have a list of unkeyed OLD children, we will not execute this while block at all
       if (
         (oldKey = getKey(oldVKids[oldHead])) == null ||
         oldKey !== getKey(newVKids[newHead])
@@ -200,13 +192,8 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
       );
     }
 
-    // 3. patch children from bottom to top
-    // loop while we are in the bounds of the new children AND the old children
+    // patch children from bottom to top
     while (newHead <= newTail && oldHead <= oldTail) {
-      // if either the old LAST child isn't keyed
-      // or if the old LAST child's key doesn't match the new LAST child key,
-      // BREAK
-      // so this means if you have a list of unkeyed OLD children, we will not execute this while block at all
       if (
         (oldKey = getKey(oldVKids[oldTail])) == null ||
         oldKey !== getKey(newVKids[newTail])
@@ -230,7 +217,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
       while (newHead <= newTail) {
         node.insertBefore(
           createNode(
-            (newVKids[newHead] = normalizeVnode(newVKids[newHead++], oldVKids[oldHead])),
+            (newVKids[newHead] = normalizeVnode(newVKids[newHead++])),
             env
           ),
           (oldVKid = oldVKids[oldHead]) && oldVKid.node
@@ -252,15 +239,8 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
       }
 
       while (newHead <= newTail) {
-        // get the key for the current old child
-        // while you're at it, assign oldVKid (which is undefined on the first iteration of this loop)
-        // to the current child at the index oldHead (which we will increment)
         oldKey = getKey((oldVKid = oldVKids[oldHead]));
 
-        // get the key for the current new child
-        // while we're at it, assign the current index at newVKids
-        // use maybeVnode to normalize the vnode at newVKids[newHead].
-        // oldVKid is passed in solely for memoization purposes, so can ignore that for now
         newKey = getKey(
           (newVKids[newHead] = normalizeVnode(newVKids[newHead], oldVKid))
         );
@@ -356,7 +336,7 @@ let addChildren = (x, children) => {
   else children.push(x);
 };
 
-export function mount(node, view) {
+export function mount(node, root) {
   node.innerHTML = '<a></a>';
   node = node.lastChild;
 
@@ -366,7 +346,7 @@ export function mount(node, view) {
       node.parentNode, // parentNode
       node, // node
       dom, // oldVnode
-      (dom = view()), // newVnode
+      (dom = root()), // newVnode
       env // env
     ));
 
@@ -374,13 +354,19 @@ export function mount(node, view) {
   return env.redraw() && env.redraw;
 }
 
+/** @type {import('./index.d.ts').redraw} **/
 export const redraw = _ => {
   for (let i = 0, len = REDRAWS.length; i < len; i++)
     REDRAWS[i]();
 };
 
+/** @type {import('./index.d.ts').onRemove} **/
 export const onRemove = evt => REMOVES.push(evt);
+
+/** @type {import('./index.d.ts').reset} **/
 export const reset = _ => REDRAWS = [];
+
+/** @type {import('./index.d.ts').memo} **/
 export const memo = cmp => (cmp.memo = 1) && cmp;
 
 /** @type {import('./index.d.ts').m} **/
@@ -427,4 +413,5 @@ export function m(tag, ...tail) {
     : { type, tag, key, props: { ...props }, children };
 }
 
+/** @type {import('./index.d.ts').retain} **/
 m.retain = _ => m(RETAIN_KEY);
