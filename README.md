@@ -312,6 +312,53 @@ const App = () => (
 );
 ```
 
+### Class Utilities
+
+Both `className` and `class` are valid properties when defining element classes. If both are present, `className` takes precedence.
+
+#### Class String Builder
+
+You may pass an object as an element class name where the keys correspond to CSS class names. `umai` will construct a class string based on the boolean values of each object key. This is helpful when conditionally applying CSS styles and complements CSS Modules or utility CSS nicely.
+
+```jsx
+const Modal = ({ isOpen = true }) => (
+  <div class={{ 'modal--open': isOpen, 'bg-green': false, 'font-xl': true }}>
+    ...
+  </div>
+);
+
+// The above will render:
+// <div class="modal--open font-xl">...</div>
+```
+
+#### Hyperscript Class Helper
+
+If you are using the hyperscript API, you may append classes delimited with `.` as part of the element tag.
+
+```js
+const Todo = () => (
+  m('div.todo.font-sm',
+    '...'
+  )
+);
+
+// The above will render:
+// <div class="todo font-sm">...</div>
+```
+
+This can also be used with the class string builder to define classes that should always be present.
+
+```js
+const Modal = ({ isOpen = true }) => (
+  m('div.font-xl', { class: { 'modal--open': isOpen, 'bg-green': false } },
+    '...'
+  )
+);
+
+// The above will render:
+// <div class="modal--open font-xl">...</div>
+```
+
 ## Credits
 
 `umai` is a hard fork of [hyperapp](https://github.com/jorgebucaran/hyperapp). Credit goes to all Hyperapp maintainers.
