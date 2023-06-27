@@ -182,12 +182,12 @@ const StatefulComponent = (initialProps) => {
 
 In the example above, the inner function (the stateless component) is run on every re-render, whereas the code before that (initializing `localVariable`) is only run once when the component mounts.
 
-Here is the same Todo component from earlier, but as a stateful component. We can take advantage of `initialProps` to set the default todos.
+Here is the same Todo component from earlier, but as a stateful component. We can take advantage of `initialProps` to set the initial todos.
 
 ```jsx
-const Todo = ({ defaultTodos }) => {
+const Todo = ({ initialTodos }) => {
   let input = '';
-  let todos = [...defaultTodos];
+  let todos = [...initialTodos];
 
   return () => (
     <div>
@@ -216,9 +216,9 @@ Now that this component is stateful, I can mount multiple `Todo` components in m
 ```jsx
 const App = () => (
   <div>
-    <Todo defaultTodos={['walk the dog']} />
-    <Todo defaultTodos={['take out trash']} />
-    <Todo defaultTodos={['wash the car']} />
+    <Todo initialTodos={['walk the dog']} />
+    <Todo initialTodos={['take out trash']} />
+    <Todo initialTodos={['wash the car']} />
   </div>
 );
 ```
@@ -239,7 +239,6 @@ const Description = () => (
 You may optionally return a function that will be invoked upon Node removal.
 ```jsx
 const Description = () => (
-  /* logs `p` Node to the console */
   <p dom={(node) => {
     console.log('created p node!');
     return () => console.log('removed p node!');
