@@ -1,11 +1,12 @@
 let NIL = void 0,
-  TEXT = 1,
-  ELEMENT = 2,
-  COMPONENT = 4,
-  STATEFUL = 5,
+  TEXT = 3,
+  ELEMENT = 1,
+  COMPONENT = 2,
+  STATEFUL = 4,
   RETAIN_KEY = '=',
   REDRAWS = [],
   REMOVES = [],
+  EMPTY_OBJ = {},
   isArray = Array.isArray,
   isStr = x => typeof x === 'string',
   isFn = x => typeof x === 'function',
@@ -50,7 +51,7 @@ let createInstance = (vnode, oldVNode) => {
   if (oldProps && memo && !propsChanged(oldProps, newProps))
     instance = oldVNode.instance;
   else
-    instance = vnode.tag({ ...newProps, children: vnode.children }, oldProps || {});
+    instance = vnode.tag({ ...newProps, children: vnode.children }, oldProps || EMPTY_OBJ);
 
   if (instance.tag === RETAIN_KEY)
     instance = oldVNode.instance;
@@ -328,7 +329,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
   }
 
   return (newVNode.node = node);
-}
+};
 
 let addChildren = (x, children) => {
   if (isArray(x)) for (let i = 0; i < x.length; i++) addChildren(x[i], children);
