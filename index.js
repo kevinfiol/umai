@@ -5,7 +5,6 @@ let NIL = void 0,
   STATEFUL = 5,
   RETAIN_KEY = '=',
   REDRAWS = [],
-  RESERVED = ['dom'],
   REMOVES = [],
   isArray = Array.isArray,
   isStr = x => typeof x === 'string',
@@ -14,7 +13,7 @@ let NIL = void 0,
   getKey = v => v == null ? v : v.key;
 
 let patchProp = (node, name, newProp, { redraw }) => {
-  if (RESERVED.includes(name)) {
+  if (name === 'dom') {
     // do nothing
   } else if (name in node) {
     if (name[0] === 'o' && name[1] === 'n') {
