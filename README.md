@@ -31,6 +31,8 @@ mount(document.body, App);
 
 See [Examples](#examples).
 
+### JSX
+
 If you prefer JSX, you can configure your favorite compiler/bundler to transform `m` calls to JSX. For esbuild, set your compilerOptions to:
 
 ```json
@@ -270,13 +272,13 @@ const Scrollbox = () => {
 
 ### `onRemove` hook
 
-You can trigger events when a stateful component unmounts using the `onRemove` hook.
+You can trigger events when a stateful component parent node unmounts using the `onRemove` hook.
 
 ```jsx
 import { m, onRemove } from 'umai';
 
 const Field = () => {
-  console.log('mounted Field!');
+  console.log('initialized Field!');
 
   onRemove(() => {
     console.log('unmounted Field!')
@@ -338,10 +340,10 @@ const Users = () => (
 
 const App = () => (
   <div>
-    {/* ✗ Not OK! umai components must return a virtual DOM node */}
+    {/* ✗ Not OK! umai components must return a virtual DOM node. */}
     <Users />
     
-    {/* ✓ OK! A Factory Function that returns a fragment */}
+    {/* ✓ OK! A factory function that returns a fragment. */}
     {Users()}
   </div>
 );
@@ -368,7 +370,7 @@ Both `className` and `class` are valid properties when defining element classes.
 
 #### Class String Builder
 
-You may pass an object as an element class name where the keys correspond to CSS class names. `umai` will construct a class string based on the boolean values of each object key. This is helpful when conditionally applying CSS styles and complements CSS Modules or utility CSS nicely.
+You may pass an object as an element class name where the keys correspond to CSS class names. `umai` will construct a class string based on the boolean values of each object property. This is helpful when conditionally applying CSS styles, and complements CSS Modules and utility CSS libraries nicely.
 
 ```jsx
 const Modal = ({ isOpen = true }) => (
