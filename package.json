@@ -9,6 +9,13 @@
   "module": "dist/umai.js",
   "unpkg": "dist/umai.min.js",
   "umd:name": "umai",
+  "terser": {
+    "mangle": {
+      "properties": {
+        "regex": "(instance|node|props)"
+      }
+    }
+  },
   "scripts": {
     "test": "node test/esbuild.js && node test.js",
     "build": "bundt index.js",
