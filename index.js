@@ -9,8 +9,9 @@ let NIL = void 0,
   isArray = Array.isArray,
   isStr = x => typeof x === 'string',
   isFn = x => typeof x === 'function',
-  isObj = x => x !== null && !isArray(x) && typeof x === 'object',
-  getKey = v => v == null ? v : v.key;
+  isObj = x => x !== null && !isArray(x) && typeof x === 'object';
+
+let getKey = v => v == null ? v : v.key;
 
 let patchProp = (node, name, newProp, { redraw }) => {
   if (name === 'dom') {
@@ -354,10 +355,8 @@ export function mount(node, root) {
 }
 
 /** @type {import('./index.d.ts').redraw} **/
-export const redraw = _ => {
-  for (let i = 0, len = REDRAWS.length; i < len; i++)
-    REDRAWS[i]();
-};
+export const redraw = _ =>
+  REDRAWS.map(redraw => redraw());
 
 /** @type {import('./index.d.ts').onRemove} **/
 export const onRemove = evt => REMOVES.push(evt);
