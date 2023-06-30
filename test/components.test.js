@@ -1,7 +1,7 @@
 import { strict as assert } from 'node:assert';
 import { suite } from 'flitch';
 import * as env from './env.js';
-import { m, mount, reset, onRemove, memo } from '../index.js';
+import { m, mount, reset, memo } from '../index.js';
 
 const test = suite('components');
 
@@ -314,10 +314,6 @@ test('remove calls', () => {
   let calls = [];
 
   const Comp = () => {
-    onRemove(() => {
-      calls.push('2');
-    })
-
     return () => (
       m('div', {
         dom: () => {
@@ -328,12 +324,10 @@ test('remove calls', () => {
   };
 
   const Nested = () => {
-    onRemove(() => calls.push('4'));
-
     return () => (
       m('section', {
         dom: () => {
-          return () => calls.push('3')
+          return () => calls.push('2')
         }
       },
         m(Comp)
@@ -374,7 +368,7 @@ test('remove calls', () => {
   `);
 
   // ensure correct removal order
-  assert.deepEqual(calls, ['1', '2', '3', '4']);
+  assert.deepEqual(calls, ['1', '2']);
 });
 
 test('memoization', () => {
