@@ -56,6 +56,18 @@ const MyComponent = () => (
 );
 ```
 
+Alternatively, if you'd like JSX-like syntax without a build-step, [developit/htm](https://github.com/developit/htm) pairs nicely with `umai`.
+```jsx
+import htm from 'htm';
+import { m, mount } from 'umai';
+
+const html = htm.bind(m);
+
+const MyComponent = () => html`
+  <div>Hello, htm!</div>
+`;
+```
+
 ### Mounting
 
 Use `mount` to mount your application on an element. `mount` takes two arguments:
@@ -228,7 +240,7 @@ const App = () => (
 );
 ```
 
-### `dom` property
+### `dom` and `remove` properties
 
 DOM nodes are passed to the `dom` handler immediately upon being created.
 
@@ -253,7 +265,7 @@ const Description = () => (
 );
 ```
 
-When used with stateful components, the `dom` property may be used to store references to DOM elements (similar to `ref`/`useRef` in React). This is useful for third-party library integration.
+When used with stateful components, the `dom` property may be used to store references to DOM elements (similar to `ref`/`useRef` in React).
 ```jsx
 const Scrollbox = () => {
   let containerEl;
@@ -270,22 +282,40 @@ const Scrollbox = () => {
 };
 ```
 
-### `onRemove` hook
-
-You can trigger events when a stateful component parent node unmounts using the `onRemove` hook.
-
+`dom` is also useful for third-party library integration. See [examples](#examples) for working examples.
 ```jsx
-import { m, onRemove } from 'umai';
+import { m } from 'umai';
+import Chart from 'chart.js';
 
-const Field = () => {
-  console.log('initialized Field!');
+const ChartApp = () => {
+  let chart;
 
-  onRemove(() => {
-    console.log('unmounted Field!')
-  });
+  const onMount = (node) => {
+    chart = new Chart(node, { /* chart.js options */ });
+
+    return () => {
+      // cleanup on node removal
+      chart.destroy();
+    };
+  };
 
   return () => (
-    <div>
+    <canvas dom={onMount} />
+  );
+};
+```
+
+In cases were you'd like to invoke a method only on Node removal and not creation, you may pass a callback to the `remove` property.
+```jsx
+const MyComponent = () => {
+  console.log('initialized MyComponent!');
+
+  const onRemove = () => {
+    console.log('unmounted MyComponent!');
+  };
+
+  return () => (
+    <div remove={onRemove}>
       ...
     </div>
   );
@@ -413,13 +443,13 @@ const Modal = ({ isOpen = true }) => (
 
 ## Examples
 
-* [Counter](https://flems.io/#0=N4IgtglgJlA2CmIBcB2AbAOgCwCYA0IAZhAgM7IDaoAdgIZiJIgYAWALmLCAQMYD21NvEHIQAYT4BXQfABO3EKXgIebCAPJMADKhABfPDXqNmAK3K8BQkUwhgADn1lsABMBdg8HqYK8CASvBgfABu8C56LoSyfGAuAOSSYLQQAAJaGDgYWvEA3AA61IUIrvzSrgC8LloFRdT81KSuEuVyLlUAFACU7QB8Lh2FLh4d8VAQIfF4Q8Mj8SwAjFMuZYJd09SzcwBGkmxsAsvuAjywEDwA1kgDPRX9q64A1FULEV7xEPWyQcJs8V0zAHULq1QrBcodKB8HhJX4YbZ8KAATy8LRkshBCn4DhIcmQ1EksFgBCUKjUGlEaCQCwAnPpDCA6AxRBgeKQLCAGtY2KIEcjgMlZABzT5ILBaewADxctD2fFyyUlAFoAO7QNgsJBoACsEsluTO1HgSpY8AgQvY1IwaFyhCsStIEAAXvBqQAOKW5fiwJxIADEWEDuXstBgnyFSC0LgWer0fJRu32Ajwn3se2AdsESsI9BISKQwWofFIIZ48D0ClJ8FU6kaoh0CwAzNr9ABdPRAA)
+* [Counter](https://flems.io/#0=N4IgtglgJlA2CmIBcB2AbAOgCwCYA0IAZhAgM7IDaoAdgIZiJIgYAWALmLCAQMYD21NvEHIQAYT4BXQfABO3EKXgIebCAPJMADKhABfPDXqNmAK3K8BQkUwhgADn1lsABMBdg8HqYJd6XhLJ8YC4A5JJgtBChANwAOtQJCK780q4AvC5a8YnU-NSkrhJpci6ZABQAlGUAfC7lCS4e5aFQEABuoXiNTc2hLACMXS6pgpXd1L19AEaSbGwCw+4CPLAQPADWSPXV6XWjrgDUmQN+XqEQebLwDIKhlT0P1JU5CWA+bOVQfDwRwmwYaZ8KAATy8xRksheCn4DhIcmQ1EksFgBCUKjUGlEOgAzDh9IYQHQGKIMDxSBYQPlrGxREDQcBIrIAOaXJBYLT2AAeLlocz4MUiXIAtAB3aBsFhINAAVk5XJia2o8GFLHgEGZ7CQAwwaBihCswtIEAAXvBtQAObkxfiwJxIADEWGdMXstBgl2ZSC0LgG8r09LBs3mAjwl3sc2ABsEwsI9BIIKQ72ofFIbp48D0CnR8FU6gK2O1OJl+gAunogA)
 
-* [Clock Example](https://flems.io/#0=N4IgtglgJlA2CmIBcB2AbAOgCwCYA0IAZhAgM7IDaoAdgIZiJIgYAWALmLCAQMYD21NvEHIQAYVh8eAa24hS8BDzYQB5JgAYkAVhABfPDXqNmAK3K8BQkUwhgADnwBObAATBXYPJ74BXQd5O8FBOtADurnquhE58YK4A5L5gtBAAAhoYOBgaCQDcADrURQhuKgyuALyJgA-ErqRstC4Q1ADmGB35RUUKbACSgvBOAG60sAAU4wCUVQB87kWuruXwVa7U8BEAIrRC0xhsfAAyUmPwACp28ADKbE4trdOF1EtBIeFPRQauAIwa-1NnkV+NQGq4JFJpGtpnNXONFp5xgkoBBhgk8AilmAkSwfujllcphiXq4pkVAd1qGA-IJxlApMlhGwMAAjPhQACe3ghMkBcn4DhIQ2Q1F8sFgBAUShUalEP20SBwAA59IYQHQGKIMDxSBYQCDrGxRGzOcAUk5Wi0kFgNPYAB6uWi+Q55FJ2gC0YWgbBYSDQ2ltdrysBa8HdLHgEFa7CQPwwaDyhCs7tIEAAXvBY0r7Xl+JInEgAMRYEt5ey0GAPJAaX6BvQmrks52Hah4Fr2Z3AJOCd2EegkDlIanUPikcs8eB6ORS+DKVSg0RaH4AZl0egAunogA)
+* [Clock Example](https://flems.io/#0=N4IgtglgJlA2CmIBcB2AbAOgCwCYA0IAZhAgM7IDaoAdgIZiJIgYAWALmLCAQMYD21NvEHIQAYVh8eAa24hS8BDzYQB5JgAYkAVhABfPDXqNmAK3K8BQkUwhgADnwBObAATBXYPJ74BXQd5O8FBOtADurnquhE58YK4A5L5gtBAJANwAOtTZCG4qDK4AvImAD8SupGy0LhDUAOYYjRnZ2QpsAJKC8E4AbrSwABQDAJTFAHzu2a6uBfDFrtTwEQAitEIjGGx8ADJS-fAAKnbwAMpsTrV1I1nU00Eh4dfZBq4AjBofwzfZ-NSVrhIpNJ5iNxq4BlNPAMElAID0EnhIdMwNCWK8ETNjsNEbdXMNsl8WtQwH5BAMoFJksI2BgAEZ8KAAT28gJkXzk-AcJG6yGovlgsAICiUKjUoi0AGYABz6QwgOgMUQYHikCwgX7WNiielM4ApJx1WpILAaewAD1ctF8W3SKTNAFowtA2CwkGhtKazelYLV4PaWPAIHV2EhXhg0OlCFZ7aQIAAveChqXm9L8SROJAAYiwOfS9loMEuSA0b09eh1zNp1q21DwtXs1uAUcE9sI9BIjKQJOofFI+Z48D0cmF8GUqj+4tDEt0egAunogA)
 
-* [htm + Stateful Component Example](https://flems.io/#0=N4IgtglgJlA2CmIBcA2ArAOjQJgDQgDMIEBnZAbVADsBDMRJEDACwBcxYR8BjAeytbwByEGzAACeAA86ABwRcQJeAm6sI-MowAMSAIx6QAX1zU6DJgCsyPfoOGMIYWbwBOrcWPEFXvCQHIxfwBuAB0qJxd3cWBxMFw43gBXAQTXeChXGgB3cSNvXwCksBoIAAFtDGwMbRDw8L4qEg8xWHEAXk92DAAjCCooAAowAEowqgbNDwBBWFgAYRpZEg7xQZGOgD4Y8PFxBA8ANxpYJPhV-zqqPd3xdNYk12v1ra6OAANbvYAeKAhDzZfPbib6yTYAFQAnrJziQ-Odsm4oCtWLxxCRmMlWEhvgB6MHA8T1a6EkH9WRJVhAwmsaHwdqhECCKRUkDU4HHU70gAkwE5ZyM7L2-HJlPavMGsVYNFcAHN4B4jBt2tt+edOtK5QqMGrBSTCbjAfrgezvsxsJteWqMKiAKqyGGuRbKdZGPHmo2EvF-AG3T5UIzjcJgZICQZQXjcYpCVi9XhQSEJF4qt6wf0-H2e4FmvSbAASKlgaMRrlgUAKfnExVK4gA1G8AITu3NA7682YLJYkfKG27e-5G95jRR8ZzEeCuZBUJJzfDKVTqTQiPS6ADMABZjKYQLR6CIMNwSDYQI17KwRD145DgCU5f0kOvtLIpOIaJTeMESlIALTZaCsZhUDQJ8pGCWB+ngb9mHgCBZTYfQMBQYICDsb8SAgAAveB9AADmfYI+CLVwkAAYnXcjglkGgYH6WUkG0cQV2fIxLwTXAekpVEqFwUVWGAFCBG-Ag6GISEkBDKheBIKjuHgIxFHneA1A0JoRF0PRVzQYwAF0jCAA)
+* [htm + Stateful Component Example](https://flems.io/#0=N4IgtglgJlA2CmIBcA2ArAOjQJgDQgDMIEBnZAbVADsBDMRJEDACwBcxYR8BjAeytbwByEGzAACeAA86ABwRcQJeAm6sI-MowAMSAIx6QAX1zU6DJgCsyPfoOGMIYWbwBOrcWPEFXvCQHIxfwBuAB0qJxd3cWBxMFw43gBXAXEjb18ApLAaCBDw8L4qEg8xWHEAXk92DAAjCCooAAowAEowqkLNDwBBWFgAYRpZEkrxJtbKgD4Y8PFxBA8ANxpYJPgx-3yqebnxV3hWJNcdienqjgADPfmAHigIJamb+fFb2SmAFQBPWQ2SPwbADubigo1YvHEJGYyVYSFuAHoPq9xAUdii3g1ZElWC8UaxfvAKqEQIIpLiQHjXis1kSACTAGnrIxU+b8LE4ioMpqxVg0VwAc0OaUmFRmTI2VT5gsOGAlLPRKIRz0Vrypt2Y2CmDIlGAhAFVZH9XENlBMjIjNSqUYiHk89tcqEYOuEwMkBE0oLxuNkhKw6rwoN8EmcxRdYI67nbra8NXopgAJFSwSEg1ywKAZPzibK5cQAaguAEJLfGXrcGX1BsMSOllXtbY8VZd2oo+M5iPBXMgqEl+vhlKp1JoRLpsNhjKYQLR6CIMNwSDYQEV7KwRLVA99gDlBQ0kAAWbSyKTiGg43jBHJSAC0QOgrGYqDQR6kwVgDXg1+Y8AgArY+gwFBggIOxrxICAAC94H0AAOY9gj4FNXCQABifd0OCWQaBgBoBSQbRxD0F8jA3INcFqHEISoXAOVYYAQIEa8CDoYhviQN0qF4EgsO4eAjEUQd4DUDRilHfQAGY0GMABdIwgA)
 
-* [3rd Party Library Integration](https://flems.io/#0=N4IgtglgJlA2CmIBcBWATAOgOwE4A0IAZhAgM7IDaoAdgIZiJIgYAWALmLCAQMYD21NvEHIQAZgBOUAAQAFWhLYBPaQBkIAIwkKVASUHwA5trYQB0gKIAPegAcE3EKXgIepgeSYAGJGKwgAXzwaekZmACtyXgEhESYIMFs+RWkAYRYFNmlCCT4waQBydjZbUiQAenL4UjAMUhZyngzFDEjy2gBXNj4CgG4AHWoEpJTgaTA8cb4OwUmJeChtAHdpAOzc-IKOsFoIAAEvDEwvPsHB-mpSLPTMgEFbW2kAXmkACgBKZ4A+aWBB6WkCCyTUyA2o-2kFyu0igtDYtGe0goEIBYyU8AUSGkaC8AEYACyTfgzNhYtBoVZ4FG-aTozHYvEoInTQRYsReSnUtEYiRkvEANmZJLJAA5OdQAQBdMEQqFZAQAWRZWRer2ofCg8E+Tx+fwlAMhzRV0mo8BWN0Uao18EmeoNBuUtngWIKGgUBSp+vtsPhWLt9oNsFoGhcZRhcNoGB2tleuRWOukcYwdIk709AYNPtozjYYeRXozv2phcBwZcLtuPAAjh0IKQIO5LtINCoUx7i4Ws1is1HaDG499E3wlhhiYJ3h37QFJ9JJR3pwWAu8wfbqfM2B0JBKPoP-faQS1NVdckoPiuDQuAQFzxD15vt9qfq9qWBXgUeLRqAA3bMemlQPIsUVZVJiuJQEBdFh4AgQx2CxfEvC8WwrF6ApVgnfVl0Ga8zmoMBlVeACeG2YQ2AwDQNSUSYdwTZ99VfAooAgL92wLV8LTYe5bAwgFPmkQZ3iw6hHH4RISHgCRkGoDpYFgIIQgYURR1IKIQAuWI2FECioCUYAdgkQwIGoJAEOQ6ROm6XodisABaJZoDYFgkH5FAkJQ2AjPgGyoJguDcQwflekIGIbPrAAvZ1cRFZDen4WBkiQABifEUt6WxaBgIzDCQDlcTcgJtKojQum6ag8CM2wumAYLBBswh6BIJQkHw9VSHSnh4ACRxnFcRtPBAHxcTEFBAklAIgA)
+* [3rd Party Library Integration](https://flems.io/#0=N4IgtglgJlA2CmIBcBWATAOgOwE4A0IAZhAgM7IDaoAdgIZiJIgYAWALmLCAQMYD21NvEHIQAZgBOUAAQAFWhLYBPaQBkIAIwkKVASUHwA5trYQB0gKIAPegAcE3EKXgIepgeSYAGJGKwgAXzwaekZmACtyXgEhESYIMFs+RWkAYRYFNmlCCT4waQBydjZbUiQAenL4UjAMUhZyngzFDEjy2gBXNj4CgG4AHWoEpJTgaTA8cb4OwWkA7Nz8go6wWgg+wcH+alIs9MyAQVtbaQBeaQAKAEozgD5pYEHpaQQspsyB6ifpbd3pKFobFoZ2kFG+zzGSngCiQ0jQXgAjAAWSb8GZsWFoNBzPDgh7SKEwuGIlCo6aCWFiLw4vGQ6ESTGIgBsZPRmIAHDTqM8ALqfb6-LICACy5Ky5wu1D4UHgN1O90e3OeP2a4uk1HgAHc0qrJdL4JNFcrlcpbPBYQUNAoCrilcaAUDYUbjcrYLQNC4yv9AbQMKtbBdctr5dIgxhCRIrraXcqHbRnGwvWC7TGHnjUy93S4LQceABHDoQUgQdw7aQaFQRm3p1Nx2Fxv20ANBu6hviajBowRXGvGgK96Q8mv9lMBK6fY14iTwNgdCTc66t53G94tGW7XJKa4T5Uj54BHffaez+eXOX3C54sAXAo8WjUABu8Zt+KgeVhIrFk12SgQFpY8AQIY7CwkiXheLYVi9AUcw9kq46DAemzUGAYoXG+PArMIbAYBo0pKJMi4hpeSrXgUUAQA+1Ypte+yKEcthwc8NzSIMVwIdQjj8IkJDwBIyDUB0sCwAQziuKWnggD4SI4IEwQgHQDCiJ2pBRCA2yxGwoh4VASjAKsEiGBA1BIGBkHSJ03S9KsVgALSatAbAsEgTIoBBUGwMZ8C2QBQEgQiGBMr0hAxLZxYAF7mgi7KQb0-CwMkSAAMRIqlvS2LQMDGYYSDUgi7kBDpBEaF03TUHgxm2F0wAhYItmEPQJBKEgqFSqQGU8PAASOGJ8BuGYOyiD4CJiCggQ8gEQA)
 
 ## Credits
 

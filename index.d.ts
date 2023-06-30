@@ -27,9 +27,6 @@ export function memo(component: Component | StatefulComponent): Component | Stat
 /** Removes all redraw handlers from the global redraw pool. **/
 export function reset(): void;
 
-/** Registers a callback to be called upon a StatefulComponent's removal. **/
-export function onRemove(callback: Function | Promise): void;
-
 /** Rerenders all currently mounted applications. **/
 export function redraw(): void;
 

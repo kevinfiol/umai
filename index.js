@@ -5,7 +5,6 @@ let NIL = void 0,
   STATEFUL = 4,
   RETAIN_KEY = '=',
   REDRAWS = [],
-  REMOVES = [],
   EMPTY_OBJ = {},
   isArray = Array.isArray,
   isStr = x => typeof x === 'string',
@@ -15,7 +14,7 @@ let NIL = void 0,
 let getKey = v => v == null ? v : v.key;
 
 let patchProp = (node, name, newProp, { redraw }) => {
-  if (name === 'dom') {
+  if (name === 'dom' || name === 'remove') {
     // do nothing
   } else if (name in node) {
     if (name[0] === 'o' && name[1] === 'n') {
@@ -57,13 +56,11 @@ let createInstance = (vnode, oldVNode) => {
     instance = oldVNode.instance;
   else if (isFn(instance)) {
     vnode.type = STATEFUL;
-    vnode.remove = REMOVES.pop();
     instance.memo = memo;
     instance = {
       ...vnode,
       type: COMPONENT,
-      tag: instance,
-      remove: NIL
+      tag: instance
     };
   }
 
@@ -96,13 +93,13 @@ let createNode = (vnode, env) => {
       );
 
   if (props && isFn(props.dom))
-    vnode.remove = props.dom(node);
+    vnode.rm = props.dom(node) || props.remove;
 
   return (vnode.node = node);
 };
 
 let getRemoves = (vnode, removes = []) => {
-  if (isFn(vnode.remove)) removes.push(vnode.remove);
+  if (isFn(vnode.rm)) removes.push(vnode.rm);
   if (vnode.children !== NIL)
     for (let i = 0; i < vnode.children.length; i++)
       getRemoves(vnode.children[i], removes);
@@ -118,7 +115,7 @@ let removeChild = (parent, vnode) => {
 
 let patch = (parent, node, oldVNode, newVNode, env) => {
   if (oldVNode != null && oldVNode.tag === newVNode.tag)
-    newVNode.remove = oldVNode.remove;
+    newVNode.rm = oldVNode.rm;
 
   if (oldVNode === newVNode) {
     // memoized
@@ -358,9 +355,6 @@ export function mount(node, root) {
 /** @type {import('./index.d.ts').redraw} **/
 export const redraw = _ =>
   REDRAWS.map(redraw => redraw());
-
-/** @type {import('./index.d.ts').onRemove} **/
-export const onRemove = evt => REMOVES.push(evt);
 
 /** @type {import('./index.d.ts').reset} **/
 export const reset = _ => REDRAWS = [];
