@@ -8,7 +8,7 @@ interface Props {
 interface VNode {
   m?: number;
   tag: string | Component | StatefulComponent;
-  props: Attrs;
+  props: Props;
   children: ChildNode[];
 }
 
