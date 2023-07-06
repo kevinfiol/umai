@@ -13,7 +13,7 @@ let NIL = void 0,
 
 let getKey = v => v == null ? v : v.key;
 
-let patchProp = (node, name, newProp, { redraw }) => {
+let patchProp = (node, name, newProp, redraw) => {
   if (name === 'dom' || name === 'remove') {
     // do nothing
   } else if (name in node) {
@@ -68,12 +68,12 @@ let createInstance = (vnode, oldVNode) => {
   return instance;
 };
 
-let createComponent = (vnode, env) =>
-  createNode((vnode.instance = createInstance(vnode)), env);
+let createComponent = (vnode, redraw) =>
+  createNode((vnode.instance = createInstance(vnode)), redraw);
 
-let createNode = (vnode, env) => {
+let createNode = (vnode, redraw) => {
   if (vnode.type === COMPONENT || vnode.type === STATEFUL)
-    return (vnode.node = createComponent(vnode, env));
+    return (vnode.node = createComponent(vnode, redraw));
 
   let i,
     props = vnode.props,
@@ -81,14 +81,14 @@ let createNode = (vnode, env) => {
       ? document.createTextNode(vnode.tag)
       : document.createElement(vnode.tag);
 
-  for (i in props) patchProp(node, i, props[i], env);
+  for (i in props) patchProp(node, i, props[i], redraw);
 
   if (vnode.type === ELEMENT)
     for (i = 0; i < vnode.children.length; i++)
       node.appendChild(
         createNode(
           (vnode.children[i] = normalizeVnode(vnode.children[i])),
-          env
+          redraw
         )
       );
 
@@ -113,7 +113,7 @@ let removeChild = (parent, vnode) => {
   parent.removeChild(vnode.node);
 };
 
-let patch = (parent, node, oldVNode, newVNode, env) => {
+let patch = (parent, node, oldVNode, newVNode, redraw) => {
   if (oldVNode != null && oldVNode.tag === newVNode.tag)
     newVNode.rm = oldVNode.rm;
 
@@ -128,7 +128,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
     // or the old vnode does not exist
     // there needs to be a node replacement
     node = parent.insertBefore(
-      createNode((newVNode = normalizeVnode(newVNode)), env),
+      createNode((newVNode = normalizeVnode(newVNode)), redraw),
       node
     );
 
@@ -141,10 +141,10 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
       props: newVNode.props,
       children: newVNode.children
     };
-    patch(parent, node, oldVNode.instance, newVNode.instance, env);
+    patch(parent, node, oldVNode.instance, newVNode.instance, redraw);
   } else if (oldVNode.type === COMPONENT && oldVNode.tag === newVNode.tag) {
     newVNode.instance = createInstance(newVNode, oldVNode);
-    patch(parent, node, oldVNode.instance, newVNode.instance, env);
+    patch(parent, node, oldVNode.instance, newVNode.instance, redraw);
   } else {
     let tmpVKid,
       oldVKid,
@@ -165,7 +165,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
           ? node[i]
           : oldProps[i]) !== newProps[i]
       ) {
-        patchProp(node, i, newProps[i], env);
+        patchProp(node, i, newProps[i], redraw);
       }
     }
 
@@ -186,7 +186,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
           newVKids[newHead++],
           oldVKids[oldHead++]
         )),
-        env
+        redraw
       );
     }
 
@@ -207,7 +207,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
           newVKids[newTail--],
           oldVKids[oldTail--]
         )),
-        env
+        redraw
       );
     }
 
@@ -216,7 +216,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
         node.insertBefore(
           createNode(
             (newVKids[newHead] = normalizeVnode(newVKids[newHead++])),
-            env
+            redraw
           ),
           (oldVKid = oldVKids[oldHead]) && oldVKid.node
         );
@@ -267,7 +267,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
               oldVKid && oldVKid.node,
               oldVKid,
               newVKids[newHead],
-              env
+              redraw
             );
 
             newHead++;
@@ -281,7 +281,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
               oldVKid.node,
               oldVKid,
               newVKids[newHead],
-              env
+              redraw
             )
             newKeyed[newKey] = true;
             oldHead++;
@@ -292,7 +292,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
                 node.insertBefore(tmpVKid.node, oldVKid && oldVKid.node),
                 tmpVKid,
                 newVKids[newHead],
-                env
+                redraw
               );
 
               newKeyed[newKey] = true;
@@ -302,7 +302,7 @@ let patch = (parent, node, oldVNode, newVNode, env) => {
                 oldVKid && oldVKid.node,
                 null,
                 newVKids[newHead],
-                env
+                redraw
               );
             }
           }
@@ -338,23 +338,24 @@ export function mount(node, root) {
   node.innerHTML = '<a></a>';
   node = node.lastChild;
 
-  let env = {},
-    dom = { type: ELEMENT, node },
-    draw = _ => (node = patch(
-      node.parentNode, // parentNode
-      node, // node
-      dom, // oldVnode
-      (dom = root()), // newVnode
-      env // env
-    ));
+  let dom = { type: ELEMENT, node },
+    redraw = _ => requestAnimationFrame(
+      _ => (node = patch(
+        node.parentNode, // parentNode
+        node, // node
+        dom, // oldVnode
+        (dom = root()), // newVnode
+        redraw // redraw
+      ))
+    );
 
-  REDRAWS.push(env.redraw = _ => requestAnimationFrame(draw));
-  return env.redraw() && env.redraw;
+  REDRAWS.push(redraw);
+  return redraw() && redraw;
 }
 
 /** @type {import('./index.d.ts').redraw} **/
 export const redraw = _ =>
-  REDRAWS.map(redraw => redraw());
+  REDRAWS.map(r => r());
 
 /** @type {import('./index.d.ts').reset} **/
 export const reset = _ => REDRAWS = [];
@@ -403,7 +404,7 @@ export function m(tag, ...tail) {
 
   return tag === '[' // jsx fragment
     ? children
-    : { type, tag, key, props: { ...props }, children };
+    : { type, tag, key, props, children };
 }
 
 /** @type {import('./index.d.ts').retain} **/

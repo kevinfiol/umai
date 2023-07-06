@@ -33,20 +33,9 @@ See [Examples](#examples).
 
 ### JSX
 
-If you prefer JSX, you can configure your favorite compiler/bundler to transform `m` calls to JSX. For esbuild, set your compilerOptions to:
+If you prefer JSX, you can configure your favorite compiler/bundler to transform `m` calls to JSX. For esbuild, see [Using JSX without React](https://esbuild.github.io/content-types/#using-jsx-without-react). Also, see [test/esbuild.js](./test/esbuild.js) for an example esbuild configuration.
 
-```json
-{
-  "compilerOptions": {
-    "jsxFactory": "m",
-    "jsxFragmentFactory": "'['"
-  }
-}
-```
-
-See [test/esbuild.js](./test/esbuild.js) for an example esbuild configuration.
-
-In order to use JSX, the factory function (`m`) must be imported at the top of each of your JSX files.
+In order to use JSX, the factory function (`m`) must be imported at the top of each of your JSX files.0
 
 ```jsx
 import { m } from 'umai'; // this is required to use JSX
@@ -59,7 +48,7 @@ const MyComponent = () => (
 Alternatively, if you'd like JSX-like syntax without a build-step, [developit/htm](https://github.com/developit/htm) pairs nicely with `umai`.
 ```jsx
 import htm from 'htm';
-import { m, mount } from 'umai';
+import { m } from 'umai';
 
 const html = htm.bind(m);
 
