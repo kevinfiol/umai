@@ -44,6 +44,7 @@ export function runApp() {
   //   )
   // )
 
+  let on = true;
   let calls = 0;
   let names = ['a', 'b', 'b', 'c'];
   let current = 0;
@@ -59,24 +60,48 @@ export function runApp() {
   //   )
   // };
 
-  const Foo = memo(() => {
-    console.log('mount FOo!!');
-    return ({ name }) => {
-      calls += 1;
-      console.log(calls);
-      return m('div',
-        m('p', name)
-      )
+  // const Foo = memo(() => {
+  //   console.log('mount FOo!!');
+  //   return ({ name }) => {
+  //     calls += 1;
+  //     console.log(calls);
+  //     return m('div',
+  //       m('p', name)
+  //     )
+  //   };
+  // });
+
+  // const App = () => (
+  //   m('div',
+  //     m('button', { id: 'next', onclick: () => current += 1 }, 'next'),
+  //     m(Foo, { name: names[current] })
+  //   )
+  // );
+
+  const FancyComponent = () => {
+    const onMount = (node) => {
+      console.log('onMount');
+    }
+
+    const onRemove = (node) => {
+      node.classList.add('exit');
+      return new Promise(res => {
+        node.addEventListener('animationend', () => {
+          console.log('remove');
+          res();
+        });
+      });
     };
-  });
+
+    return () => m('div.fancy', { dom: onMount, remove: onRemove }, 'hello world');
+  };
 
   const App = () => (
     m('div',
-      m('button', { id: 'next', onclick: () => current += 1 }, 'next'),
-      m(Foo, { name: names[current] })
+      m('button', { onclick: () => on = !on }, 'toggle'),
+      on ? m(FancyComponent) : null
     )
   );
-
 
   mount(root, App);
 }

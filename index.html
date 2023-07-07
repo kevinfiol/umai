@@ -11,6 +11,20 @@
             color: #ededed;
             font-family: monospace;
         }
+
+        .fancy {
+          font-size: 2rem;
+        }
+
+        .exit {
+          animation:fade-out 2.0s;
+          font-size: 2rem;
+        }
+
+        @keyframes fade-out {
+          from {opacity:1;}
+          to {opacity:0;}
+        }
     </style>
 </head>
 <body>
@@ -23,7 +37,6 @@
     <div id="vnode">
     </div>
 
-    <script src="./example/mithril.js"></script>
     <script type="module">
         // import { runApp } from './example/bench/app.js';
         import { runApp } from './example/playground.js';

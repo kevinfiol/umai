@@ -92,8 +92,9 @@ let createNode = (vnode, redraw) => {
         )
       );
 
-  if (props && isFn(props.dom))
-    vnode.rm = props.dom(node) || props.remove;
+  vnode.rm = props
+    ? isFn(props.dom) && props.dom(node) || props.remove
+    : NIL;
 
   return (vnode.node = node);
 };
@@ -108,9 +109,12 @@ let getRemoves = (vnode, removes = []) => {
 };
 
 let removeChild = (parent, vnode) => {
-  let remove, removes = getRemoves(vnode);
-  while (remove = removes.pop()) remove();
-  parent.removeChild(vnode.node);
+  let remove,
+    node = vnode.node,
+    removes = getRemoves(vnode);
+
+  while (remove = removes.pop()) remove(node);
+  parent.removeChild(node);
 };
 
 let patch = (parent, node, oldVNode, newVNode, redraw) => {
