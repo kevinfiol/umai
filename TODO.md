@@ -1,5 +1,5 @@
-- [ ] async `onRemove`
-- [ ] SVG support
+- [ ] async removes
+- [ ] error handling / error boundaries
 - [ ] refactor silly hack to empty mounted Node
 - [ ] full fragment support
 - [ ] ctx support

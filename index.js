@@ -99,22 +99,16 @@ let createNode = (vnode, redraw) => {
   return (vnode.node = node);
 };
 
-let getRemoves = (vnode, removes = []) => {
-  if (isFn(vnode.rm)) removes.push(vnode.rm);
+let removeChild = (parentNode, vnode, root = parentNode) => {
   if (vnode.children !== NIL)
     for (let i = 0; i < vnode.children.length; i++)
-      getRemoves(vnode.children[i], removes);
-  if (vnode.instance !== NIL) getRemoves(vnode.instance, removes);
-  return removes;
-};
-
-let removeChild = (parent, vnode) => {
-  let remove,
-    node = vnode.node,
-    removes = getRemoves(vnode);
-
-  while (remove = removes.pop()) remove(node);
-  parent.removeChild(node);
+      removeChild(vnode.node, vnode.children[i], root);
+  if (vnode.instance !== NIL)
+    removeChild(parentNode, vnode.instance, root);
+  else {
+    if (isFn(vnode.rm)) vnode.rm(vnode.node);
+    if (parentNode === root) parentNode.removeChild(vnode.node);
+  }
 };
 
 let patch = (parent, node, oldVNode, newVNode, redraw) => {
