@@ -81,16 +81,16 @@ export function runApp() {
   const FancyComponent = () => {
     const onMount = (node) => {
       console.log('onMount');
-    }
+    };
 
-    const onRemove = (node) => {
+    const onRemove = (node, done) => {
       node.classList.add('exit');
       return new Promise(res => {
         node.addEventListener('animationend', () => {
           console.log('remove');
           res();
         });
-      });
+      }).then(done);
     };
 
     return () => m('div.fancy', { dom: onMount, remove: onRemove }, 'hello world');

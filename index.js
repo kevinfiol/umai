@@ -99,17 +99,39 @@ let createNode = (vnode, redraw) => {
   return (vnode.node = node);
 };
 
+let removeNode = (parentNode, node, rm) => {
+  let done = _ => parentNode.removeChild(node),
+    res = isFn(rm) ? rm(node) : NIL;
+
+  if (res && isFn(res.then))
+    res.finally(done);
+  else done();
+
+  // if (!res || (res && !isFn(res.then)))
+  //   done();
+};
+
 let removeChild = (parentNode, vnode, root = parentNode) => {
   if (vnode.children !== NIL)
     for (let i = 0; i < vnode.children.length; i++)
       removeChild(vnode.node, vnode.children[i], root);
   if (vnode.instance !== NIL)
     removeChild(parentNode, vnode.instance, root);
-  else {
-    if (isFn(vnode.rm)) vnode.rm(vnode.node);
-    if (parentNode === root) parentNode.removeChild(vnode.node);
-  }
+  else removeNode(parentNode, vnode.node, vnode.rm);
 };
+
+  // function removeElement(parent, element, node) {
+  //   function done() {
+  //     parent.removeChild(removeChildren(element, node))
+  //   }
+
+  //   var cb = node.attributes && node.attributes.onremove
+  //   if (cb) {
+  //     cb(element, done)
+  //   } else {
+  //     done()
+  //   }
+  // }
 
 let patch = (parent, node, oldVNode, newVNode, redraw) => {
   if (oldVNode != null && oldVNode.tag === newVNode.tag)
