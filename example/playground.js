@@ -78,22 +78,40 @@ export function runApp() {
   //   )
   // );
 
+  const Fuz = () => (
+    m('div.cool', {
+      remove: (node) => {
+        console.log('about to return promise...', node);
+        node.classList.add('exit');
+        return new Promise(res =>
+          node.addEventListener('animationend', () => {
+            console.log('remove fuz');
+            res();
+          })
+        );
+      }
+    }, 'sup')
+  );
+
   const FancyComponent = () => {
     const onMount = (node) => {
       console.log('onMount');
-    };
+    }
 
-    const onRemove = (node, done) => {
+    const onRemove = (node) => {
       node.classList.add('exit');
       return new Promise(res => {
         node.addEventListener('animationend', () => {
           console.log('remove');
           res();
         });
-      }).then(done);
+      });
     };
 
-    return () => m('div.fancy', { dom: onMount, remove: onRemove }, 'hello world');
+    return () => m('div.fancy', {
+      dom: onMount,
+      remove: onRemove
+    }, 'hello world', m(Fuz));
   };
 
   const App = () => (
