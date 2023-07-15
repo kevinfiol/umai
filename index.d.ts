@@ -12,7 +12,7 @@ interface VNode {
   children: ChildNode[];
 }
 
-type Component = (props: Props, oldProps?: Props) => Vnode;
+type Component = (props: Props, oldProps?: Props) => VNode;
 type StatefulComponent = (props: Props) => Component;
 
 /** Creates a virtual DOM node. Can be used to create HTML Element vnodes or consume components. **/
