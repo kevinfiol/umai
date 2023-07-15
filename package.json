@@ -12,7 +12,7 @@
   "terser": {
     "mangle": {
       "properties": {
-        "regex": "(instance|node|props)"
+        "regex": "(instance|node|props|_async)"
       }
     }
   },

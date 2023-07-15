@@ -99,78 +99,29 @@ let createNode = (vnode, redraw) => {
   return (vnode.node = node);
 };
 
-// let removeNode = (parentNode, node, rm) => {
-//   let done = _ => parentNode.removeChild(node),
-//     res = isFn(rm) ? rm(node) : NIL;
-
-//   if (res && isFn(res.then))
-//     res.finally(done);
-//   else done();
-
-//   // if (!res || (res && !isFn(res.then)))
-//   //   done();
-// };
-
-// let removeChild = (parentNode, vnode, root = parentNode) => {
-//   if (vnode.children !== NIL)
-//     for (let i = 0; i < vnode.children.length; i++)
-//       removeChild(vnode.node, vnode.children[i], root);
-//   if (vnode.instance !== NIL)
-//     removeChild(parentNode, vnode.instance, root);
-//   else removeNode(parentNode, vnode.node, vnode.rm);
-// };
-
-let removeNode = (parentNode, node, rm, chain) => {
-  let done = _ => parentNode.removeChild(node),
-    res = isFn(rm) ? rm(node) : NIL;
-
-  if (res && isFn(res.then))
-    res.finally(done);
-  else done();
-
-  // if (!res || (res && !isFn(res.then)))
-  //   done();
-};
-
-let removeChildren = (parentNode, vnode, chain, root = parentNode) => {
+let getRemoves = (vnode, removes = []) => {
   if (vnode.children !== NIL)
     for (let i = 0; i < vnode.children.length; i++)
-      removeChildren(vnode.node, vnode.children[i], chain, root);
+      getRemoves(vnode.children[i], removes);
   if (vnode.instance !== NIL)
-    removeChildren(parentNode, vnode.instance, chain, root);
-  // else removeNode(parentNode, vnode.node, vnode.rm, chain);
+    getRemoves(vnode.instance, removes);
   else if (isFn(vnode.rm)) {
     let res = vnode.rm(vnode.node);
-    if (res && isFn(res.then)) {
-      if (parentNode !== root) res.then(_ => parentNode.removeChild(vnode.node));
-      chain.push(res);
-    }
+    if (isFn(res.then)) removes._async = 1;
+    removes.push(res);
   }
 
-  return chain;
+  return removes;
 };
 
-let removeChild = async (parentNode, vnode) => {
-  // let last = _ => parentNode.removeChild(vnode.node);
-  let removals = removeChildren(parentNode, vnode, []);
-  let last = removals.pop();
+let removeChild = (parentNode, vnode) => {
+  let done = _ => parentNode.removeChild(vnode.node),
+    removes = getRemoves(vnode);
 
-  if (last) last.finally(_ => parentNode.removeChild(vnode.node))
-  else parentNode.removeChild(vnode.node)
+  removes._async
+    ? Promise.all(removes).finally(done)
+    : done();
 };
-
-  // function removeElement(parent, element, node) {
-  //   function done() {
-  //     parent.removeChild(removeChildren(element, node))
-  //   }
-
-  //   var cb = node.attributes && node.attributes.onremove
-  //   if (cb) {
-  //     cb(element, done)
-  //   } else {
-  //     done()
-  //   }
-  // }
 
 let patch = (parent, node, oldVNode, newVNode, redraw) => {
   if (oldVNode != null && oldVNode.tag === newVNode.tag)
