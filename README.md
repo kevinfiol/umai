@@ -345,6 +345,7 @@ const User = (props, oldProps) => {
 
 ### Keys
 Use `key` for rendering lists where the DOM element order matters. Prefer strings or unique ids over indices when possible.
+
 ```jsx
 import { emojis } from './emojis.js'; 
 
@@ -360,19 +361,19 @@ const FoodItem = (initial) => {
   const emoji = emojis[initial.name];
   
   return ({ name }) => (
-    m('p', `${emoji} = ${name}`)
+    <p>{emoji} = {name}</p>
   );
 };
 
 const App = () => (
-  m('div',
-    food.map((item) =>
-      m(FoodItem, {
-        key: item.id,
-        name: item.name
-      })  
-    )
-  )
+  <div>
+    {food.map((item) =>
+      <FoodItem
+        key={item.id}
+        name={item.name}
+      />
+    )}
+  </div>
 );
 ```
 
