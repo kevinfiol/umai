@@ -415,6 +415,14 @@ const App = () => (
     Users()
   )
 );
+
+/*
+The above renders:
+  <div>
+    <p>kevin</p>
+    <p>rafael</p>
+  </div>
+*/
 ```
 
 ### Class Utilities
