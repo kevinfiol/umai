@@ -172,7 +172,7 @@ const Dashboard = () => (
 
 ### Stateful Components
 
-To use local component state (like `useState` in React), you can create a stateful component. Stateful components are functions that return stateless components (or commonly known in [Mithril.js](https://mithril.js.org) as "closure components").
+To use local component state (like `useState` in React), you can create a stateful component. Stateful components are functions that return stateless components (known as "closure components" in [Mithril.js](https://mithril.js.org)).
 
 ```jsx
 const StatefulComponent = (initialProps) => {
@@ -294,7 +294,7 @@ const ChartApp = () => {
 };
 ```
 
-In cases were you'd like to invoke a method only on Node removal and not creation, you may pass a callback to the `remove` property.
+In cases where you'd like to invoke a method only on Node removal and not creation, you may pass a callback to the `remove` property.
 ```jsx
 const MyComponent = () => {
   console.log('initialized MyComponent!');
