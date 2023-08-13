@@ -343,6 +343,39 @@ const User = (props, oldProps) => {
 };
 ```
 
+### Keys
+Use `key` for rendering lists where the DOM element order matters. Prefer strings or unique ids over indices when possible.
+```jsx
+import { emojis } from './emojis.js'; 
+
+const food = [
+  { id: 1, name: 'apple' },
+  { id: 2, name: 'banana' },
+  { id: 3, name: 'carrot' },
+  { id: 4, name: 'doughnut' },
+  { id: 5, name: 'egg' }
+];
+
+const FoodItem = (initial) => {
+  const emoji = emojis[initial.name];
+  
+  return ({ name }) => (
+    m('p', `${emoji} = ${name}`)
+  );
+};
+
+const App = () => (
+  m('div',
+    food.map((item) =>
+      m(FoodItem, {
+        key: item.id,
+        name: item.name
+      })  
+    )
+  )
+);
+```
+
 ### Fragments
 
 `umai` features minimal fragment support. There are two main caveats to keep in mind:
@@ -440,7 +473,7 @@ const Modal = ({ isOpen = true }) => (
 
 * [3rd Party Library Integration](https://flems.io/#0=N4IgtglgJlA2CmIBcBWATAOgOwE4A0IAZhAgM7IDaoAdgIZiJIgYAWALmLCAQMYD21NvEHIQAZgBOUAAQAFWhLYBPaQBkIAIwkKVASUHwA5trYQB0gKIAPegAcE3EKXgIepgeSYAGJGKwgAXzwaekZmACtyXgEhESYIMFs+RWkAYRYFNmlCCT4waQBydjZbUiQAenL4UjAMUhZyngzFDEjy2gBXNj4CgG4AHWoEpJTgaTA8cb4OwWkA7Nz8go6wWgg+wcH+alIs9MyAQVtbaQBeaQAKAEozgD5pYEHpaQQspsyB6ifpbd3pKFobFoZ2kFG+zzGSngCiQ0jQXgAjAAWSb8GZsWFoNBzPDgh7SKEwuGIlCo6aCWFiLw4vGQ6ESTGIgBsZPRmIAHDTqM8ALqfb6-LICACy5Ky5wu1D4UHgN1O90e3OeP2a4uk1HgAHc0qrJdL4JNFcrlcpbPBYQUNAoCrilcaAUDYUbjcrYLQNC4yv9AbQMKtbBdctr5dIgxhCRIrraXcqHbRnGwvWC7TGHnjUy93S4LQceABHDoQUgQdw7aQaFQRm3p1Nx2Fxv20ANBu6hviajBowRXGvGgK96Q8mv9lMBK6fY14iTwNgdCTc66t53G94tGW7XJKa4T5Uj54BHffaez+eXOX3C54sAXAo8WjUABu8Zt+KgeVhIrFk12SgQFpY8AQIY7CwkiXheLYVi9AUcw9kq46DAemzUGAYoXG+PArMIbAYBo0pKJMi4hpeSrXgUUAQA+1Ypte+yKEcthwc8NzSIMVwIdQjj8IkJDwBIyDUB0sCwAQziuKWnggD4SI4IEwQgHQDCiJ2pBRCA2yxGwoh4VASjAKsEiGBA1BIGBkHSJ03S9KsVgALSatAbAsEgTIoBBUGwMZ8C2QBQEgQiGBMr0hAxLZxYAF7mgi7KQb0-CwMkSAAMRIqlvS2LQMDGYYSDUgi7kBDpBEaF03TUHgxm2F0wAhYItmEPQJBKEgqFSqQGU8PAASOGJ8BuGYOyiD4CJiCggQ8gEQA)
 
-* [Keyed list example](https://flems.io/#0=N4IgtglgJlA2CmIBcB2AbAOgCwCYA0IAZhAgM7IDaoAdgIZiJIgYAWALmLCAQMYD21NvEHIQAYT4BXQfABO3EKXgIebCAPJMADKhABfPDXqNmAK3K8BQkUwD0tgATwAHvQAOCB7Si03QqA6EsnxgDmws8E7OPMoIgg4AygBuykJhkmx8shC0sEgO7GxupEj2CLSy1BikKbBCGFDwSbZsGVk5sLYA1vAAnvBQALTwtDwsgwBGsHw8XaQAOtQQYG5ZbA7ADmB4W1LxeoHBoQDkkmC0EMcA3IuLCOvhENQA5qQOALwOFIsOGw7Q+QAjDs6Ax8sdfB54McHAYfn8AQ58A5QfBwRNaHQ6DC4dRfptEQBmEHGcE8CrBNg4vDwglQfJYElghzHKBSZ4sagZam0-70hwAViZaJZ8GezxxiwAujdqItCNJVOo8SxMXB4GJYBBZgAKACUG3hjxeb0+xte1S1MR1gL1sr0t2o-GopHW8DAfFMEFNhrxXjcUPBgB4NwBy+8caX6MVjaMHADL74fh5NklPBgD4NwCquwm-WzJByuWxg4BLfazvzFzzTgC1d46LPSyxbO10OAAqLCezw+Dh1TwgbAN7wAfL7fg23R6vR33Z7vRRu2wMKiZY7frJ4K1Kp3NqjYX3Bzr4b8wDrjm5ww4AAYAEmAk69B0+V9RejPevhdprdadGnWAEEAx39R8u7woerIQEkJa-FsR4TBkmTUKewD7pBAg8FaXT5Kq1Dqpq2pdEhBgsgASpOKSBBAsiNuaxx6hGkEOEh5qkBg5xuDqOrmjuSEHjqLZtjsiF+nRvw9L0+Tmhg0C0UJvyomJrYvPOxhcduvxIS+frqW+crUB60hsDqbI8GcwhzhMfBQL0Oy-m4WkKPwKwkHIyBcrAsAGEYDCiBgPCkBYIDOtYbCiGZFnAOcsjPE8SBYFobjOF4bRXOcziDAA7tA4RIGgAqxc4VxatQ8CDBEEAcgWgIYGgVyEFYgykBAABeaKAgAHHFVz8NMshIAAxFg-VXG43hQG2SBaA4gK5XoIWWTBbBwXgTxuBkwA1YIgyEPQJCiR61B8KQQ0xHoChKCoagaKIOiAoSAr6FKehAA)
+* [Keyed list example](https://flems.io/#0=N4IgtglgJlA2CmIBcB2AbAOgCwCYA0IAZhAgM7IDaoAdgIZiJIgYAWALmLCAQMYD21NvEHIQAaXgBPeFAAEsCKTbcQpeAh5sIA8kwAMSAIx6QAXzw16jZgCtyvAUJFMA9C9nwAHvQAOCWbRQtD5CcoQATnxgsmws8B6ePOoIgrIAygBu6kIxAK5sfOEQtLBIsuxsPqRIbgi04dQYpFmwQhhQ8BkubPmFxbAuANZSMgC08LQ8LKMARrB8PIOkADrUEGA+hWyywLJgeHt8uammshFRsgDkuWC0EJcA3KurCNuxENQA5qSyALyyFFWsh2smgZUMBzoDDKl2Cfngl1k5iBILBsnwsih8BhM1odDoiOR1GBuzRAGZIVYYTx6pE2IS8CjSVAylhKdCrlAjp8WNR8gymaCWbIAKzs7FXeCfT6E1YAXSe1FWhGOmm0xJYeLg8AAwgpFgAKACUOxR7y+P3+5u+TX18ANhiNitMz2o-GoSg8YD4NkUf1NxICPnhMMAPBuAOX3LozA7j8bQw4AZfajKJp4TpMMAfBuAVV3k4GubkeXy2GHAJb7ueBUs+mcAWruXVamRWrd2egAqLA+n39Bo+EDYJt+AD4A8Dm9t4N7ff7xz7FBQe2wMFiFa7geF4D0GrIDbssUj+0ODSjgWADZcfFHZAADAAkwGnvtO-1vWNMl6NKKd9cbbp02wAgsGXb7luKInpcUAQBk5bAnsp4zPkBTUBewBHjBAg8PqgxlJq1DanqECLKh5hXAAStOWRnBA4SetalxGtGMGyKh1qkBgtw+AaBrWvuqHHgabYdgcKGBoxwLDJIZTWhg0AMaJwJYpJ7ZfIuVi8XuwKoe+gZaZ+SrUN6xxsAaXI8DcwgLjMfBQJIBwAT4ukqPwGwkPA4TIHysCwOYlgMKIGA8KQ9ggO6TjKEwlnWcAtzhJ8HxIFgeg+J4AS9A8tyeKMADu0CxEgaAiolngPAo1DwKMcQQDyxaGBgaAPIQjijKQEAAF7YoYAAcSUPPw8zhEgADEWDDQ8PiBBBXxIHosjGElpgRTZ8FsIheAfD4+TAA1gijIQ9AkBJ3rUHwpBjUkpgqGoGhaDoogGIYZIimYcqmEAA)
 
 ## Credits
 
