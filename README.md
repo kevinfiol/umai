@@ -378,8 +378,8 @@ const food = [
   { id: 5, name: 'egg' }
 ];
 
-const FoodItem = (initial) => {
-  const emoji = emojis[initial.name];
+const FoodItem = (initialProps) => {
+  const emoji = emojis[initialProps.name];
   
   return ({ name }) => (
     <p>{emoji} = {name}</p>
