@@ -4,7 +4,7 @@
 
 *Logo by [twitter.com/haggle](https://twitter.com/haggle)*
 
-A [small](https://bundlephobia.com/package/umai) UI library with an ergonomic API.
+A [small](https://bundlephobia.com/package/umai) UI library with a familiar API.
 
 ## Install
 
