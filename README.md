@@ -14,16 +14,18 @@ npm install umai
 
 ## Usage
 
-```js
+```jsx
 import { m, mount } from 'umai';
 
 let count = 1;
 
 const App = () => (
-  m('div',
-    m('h1', `Count: ${count}`),
-    m('button', { onclick: () => count += 1 }, 'increment')
-  )
+  <div>
+    <h1>Count: {count}</h1>
+    <button onclick={() => count += 1}>
+      increment
+    </button>
+  </div>
 );
 
 mount(document.body, App);
@@ -45,7 +47,7 @@ const MyComponent = () => (
 );
 ```
 
-Alternatively, if you'd like JSX-like syntax without a build-step, [developit/htm](https://github.com/developit/htm) pairs nicely with `umai`.
+Alternatively, if you'd like JSX-like syntax without a build step, [developit/htm](https://github.com/developit/htm) pairs nicely with `umai`.
 ```jsx
 import htm from 'htm';
 import { m } from 'umai';
@@ -56,6 +58,27 @@ const MyComponent = () => html`
   <div>Hello, htm!</div>
 `;
 ```
+
+### Hyperscript
+
+You can use `umai` without JSX or htm with the included hyperscript API `m`.
+```js
+import { m } from 'umai';
+
+const MyComponent = ({ name }) => (
+  m('div', `Hello, ${name}!`)
+);
+
+const App = () => (
+  m('div',
+    m(MyComponent, {
+      name: 'Hyperscript'
+    }) 
+  )
+);
+```
+
+Using the hyperscript API also allows you to use the [hyperscript class helper](#hyperscript-class-helper).
 
 ### Mounting
 
@@ -74,8 +97,6 @@ mount(el, App);
 
 `umai` components (stateless components) are functions that return pieces of your UI. Components accept an object of properties (`props`) as their first argument.
 
-Below is an example of a `User` and a `List` component. The `User` component accepts a prop, `name`. In `List`, we pass different values for the `name` prop to different instances of `User` that we wish to display.
-
 ```jsx
 const User = (props) => (
   <div class="user">
@@ -93,7 +114,7 @@ const List = () => (
 ```
 
 ### Passing `children`
-`children` are passed as part of the `props` object. They can be used to compose multiple components. This is especially helpful when creating layouts or wrapping styled elements.
+`children` are passed as part of the `props` object. They can be used to compose multiple components. This is helpful when creating layouts or wrapping styled elements.
 
 ```jsx
 const Layout = ({ title, children }) => (
@@ -112,7 +133,7 @@ const UserPage = () => (
 
 ### Redraws & State Management
 
-`umai` uses global redraws by default. This means event handlers defined in your app will trigger full component tree re-renders. This simplifies state management so that any variable within the scope of your component is valid state.
+`umai` uses global redraws. This means event handlers defined in your app will trigger full component tree re-renders. This simplifies state management so that any variable within the scope of your component is valid state.
 
 ```jsx
 let input = '';
@@ -139,18 +160,34 @@ const Todo = () => (
 );
 ```
 
-Triggering manual redraws is also possible using `redraw`. This is particularly helpful when dealing with effects or asynchronous code.
+Triggering manual redraws is also possible using `redraw`. This is helpful when dealing with effects or asynchronous operations.
 
 ```jsx
-import { m, redraw } from 'umai';
+let time = '⏰ starting...';
+
+setInterval(() => {
+  time = new Date().toLocaleTimeString();
+  redraw(); // this tells umai to rerender
+}, 1000);
+
+const Clock = () => (
+  <div>
+    <h1>{time}</h1>
+  </div>
+);
+```
+
+If your event handler returns a promise, `redraw` is automatically called for you when the promise has settled.
+
+```jsx
+import { m } from 'umai';
 import { fetchUsers } from './api.js';
 
 let users = [];
 
 const getUsers = () => {
   fetchUsers()
-    .then(res => users.push(res))
-    .finally(redraw);
+    .then(res => users.push(res)); // no need to call redraw!
 };
 
 const Dashboard = () => (
@@ -172,7 +209,7 @@ const Dashboard = () => (
 
 ### Stateful Components
 
-To use local component state (like `useState` in React), you can create a stateful component. Stateful components are functions that return stateless components (or commonly known in [Mithril.js](https://mithril.js.org) as "closure components").
+Stateful components are functions that return stateless components (known as "closure components" in [Mithril.js](https://mithril.js.org)).
 
 ```jsx
 const StatefulComponent = (initialProps) => {
@@ -186,9 +223,9 @@ const StatefulComponent = (initialProps) => {
 };
 ```
 
-In the example above, the inner function (the stateless component) is run on every re-render, whereas the code before that (initializing `localVariable`) is only run once when the component mounts.
+In the example above, the inner function (the stateless component) is run on every re-render, whereas the outer function (initializing `localVariable`) is only run once when the component initializes.
 
-Here is the same Todo component from earlier, but as a stateful component. We can take advantage of `initialProps` to set the initial todos.
+Here is the same Todo component from earlier, but as a stateful component. We can take advantage of `initialProps` to set the initial `todos`, which can be modified and have its changes reflected in subsequent renders.
 
 ```jsx
 const Todo = ({ initialTodos }) => {
@@ -294,7 +331,7 @@ const ChartApp = () => {
 };
 ```
 
-In cases were you'd like to invoke a method only on Node removal and not creation, you may pass a callback to the `remove` property.
+In cases where you'd like to invoke a method only on Node removal and not creation, you may pass a callback to the `remove` property.
 ```jsx
 const MyComponent = () => {
   console.log('initialized MyComponent!');
@@ -343,6 +380,40 @@ const User = (props, oldProps) => {
 };
 ```
 
+### Keys
+Use `key` for rendering lists where the DOM element order matters. Prefer strings or unique ids over indices when possible.
+
+```jsx
+import { emojis } from './emojis.js'; 
+
+const food = [
+  { id: 1, name: 'apple' },
+  { id: 2, name: 'banana' },
+  { id: 3, name: 'carrot' },
+  { id: 4, name: 'doughnut' },
+  { id: 5, name: 'egg' }
+];
+
+const FoodItem = (initialProps) => {
+  const emoji = emojis[initialProps.name];
+  
+  return ({ name }) => (
+    <p>{emoji} = {name}</p>
+  );
+};
+
+const App = () => (
+  <div>
+    {food.map((item) =>
+      <FoodItem
+        key={item.id}
+        name={item.name}
+      />
+    )}
+  </div>
+);
+```
+
 ### Fragments
 
 `umai` features minimal fragment support. There are two main caveats to keep in mind:
@@ -381,6 +452,14 @@ const App = () => (
     Users()
   )
 );
+
+/*
+The above renders:
+  <div>
+    <p>kevin</p>
+    <p>rafael</p>
+  </div>
+*/
 ```
 
 ### Class Utilities
@@ -451,11 +530,15 @@ const Comment = ({ userName }) => (
 
 * [Counter](https://flems.io/#0=N4IgtglgJlA2CmIBcB2AbAOgCwCYA0IAZhAgM7IDaoAdgIZiJIgYAWALmLCAQMYD21NvEHIQAYT4BXQfABO3EKXgIebCAPJMADKhABfPDXqNmAK3K8BQkUwhgADn1lsABMBdg8HqYJd6XhLJ8YC4A5JJgtBChANwAOtQJCK780q4AvC5a8YnU-NSkrhJpci6ZABQAlGUAfC7lCS4e5aFQEABuoXiNTc2hLACMXS6pgpXd1L19AEaSbGwCw+4CPLAQPADWSPXV6XWjrgDUmQN+XqEQebLwDIKhlT0P1JU5CWA+bOVQfDwRwmwYaZ8KAATy8xRksheCn4DhIcmQ1EksFgBCUKjUGlEOgAzDh9IYQHQGKIMDxSBYQPlrGxREDQcBIrIAOaXJBYLT2AAeLlocz4MUiXIAtAB3aBsFhINAAVk5XJia2o8GFLHgEGZ7CQAwwaBihCswtIEAAXvBtQAObkxfiwJxIADEWGdMXstBgl2ZSC0LgG8r09LBs3mAjwl3sc2ABsEwsI9BIIKQ72ofFIbp48D0CnR8FU6gK2O1OJl+gAunogA)
 
-* [Clock Example](https://flems.io/#0=N4IgtglgJlA2CmIBcB2AbAOgCwCYA0IAZhAgM7IDaoAdgIZiJIgYAWALmLCAQMYD21NvEHIQAYVh8eAa24hS8BDzYQB5JgAYkAVhABfPDXqNmAK3K8BQkUwhgADnwBObAATBXYPJ74BXQd5O8FBOtADurnquhE58YK4A5L5gtBAJANwAOtTZCG4qDK4AvImAD8SupGy0LhDUAOYYjRnZ2QpsAJKC8E4AbrSwABQDAJTFAHzu2a6uBfDFrtTwEQAitEIjGGx8ADJS-fAAKnbwAMpsTrV1I1nU00Eh4dfZBq4AjBofwzfZ-NSVrhIpNJ5iNxq4BlNPAMElAID0EnhIdMwNCWK8ETNjsNEbdXMNsl8WtQwH5BAMoFJksI2BgAEZ8KAAT28gJkXzk-AcJG6yGovlgsAICiUKjUoi0AGYABz6QwgOgMUQYHikCwgX7WNiielM4ApJx1WpILAaewAD1ctF8W3SKTNAFowtA2CwkGhtKazelYLV4PaWPAIHV2EhXhg0OlCFZ7aQIAAveChqXm9L8SROJAAYiwOfS9loMEuSA0b09eh1zNp1q21DwtXs1uAUcE9sI9BIjKQJOofFI+Z48D0cmF8GUqj+4tDEt0egAunogA)
+* [Clock](https://flems.io/#0=N4IgtglgJlA2CmIBcB2AbAOgCwCYA0IAZhAgM7IDaoAdgIZiJIgYAWALmLCAQMYD21NvEHIQAYVh8eAa24hS8BDzYQB5JgAYkAVhABfPDXqNmAK3K8BQkUwhgADnwBObAATBXYPJ74BXQd5O8FBOtADurnquhE58YK4A5L5gtBAJANwAOtTZCG4qDK4AvImAD8SupGy0LhDUAOYYjRnZ2QpsAJKC8E4AbrSwABQDAJTFAHzu2a6uBfDFrtTwEQAitEIjGGx8ADJS-fAAKnbwAMpsTrV1I1nU00Eh4dfZBq4AjBofwzfZ-NSVrhIpNJ5iNxq4BlNPAMElAID0EnhIdMwNCWK8ETNjsNEbdXMNsl8WtQwH5BAMoFJksI2BgAEZ8KAAT28gJkXzk-AcJG6yGovlgsAICiUKjUoi0AGYABz6QwgOgMUQYHikCwgX7WNiielM4ApJx1WpILAaewAD1ctF8W3SKTNAFowtA2CwkGhtKazelYLV4PaWPAIHV2EhXhg0OlCFZ7aQIAAveChqXm9L8SROJAAYiwOfS9loMEuSA0b09eh1zNp1q21DwtXs1uAUcE9sI9BIjKQJOofFI+Z48D0cmF8GUqj+4tDEt0egAunogA)
 
-* [htm + Stateful Component Example](https://flems.io/#0=N4IgtglgJlA2CmIBcA2ArAOjQJgDQgDMIEBnZAbVADsBDMRJEDACwBcxYR8BjAeytbwByEGzAACeAA86ABwRcQJeAm6sI-MowAMSAIx6QAX1zU6DJgCsyPfoOGMIYWbwBOrcWPEFXvCQHIxfwBuAB0qJxd3cWBxMFw43gBXAXEjb18ApLAaCBDw8L4qEg8xWHEAXk92DAAjCCooAAowAEowqkLNDwBBWFgAYRpZEkrxJtbKgD4Y8PFxBA8ANxpYJPgx-3yqebnxV3hWJNcdienqjgADPfmAHigIJamb+fFb2SmAFQBPWQ2SPwbADubigo1YvHEJGYyVYSFuAHoPq9xAUdii3g1ZElWC8UaxfvAKqEQIIpLiQHjXis1kSACTAGnrIxU+b8LE4ioMpqxVg0VwAc0OaUmFRmTI2VT5gsOGAlLPRKIRz0Vrypt2Y2CmDIlGAhAFVZH9XENlBMjIjNSqUYiHk89tcqEYOuEwMkBE0oLxuNkhKw6rwoN8EmcxRdYI67nbra8NXopgAJFSwSEg1ywKAZPzibK5cQAaguAEJLfGXrcGX1BsMSOllXtbY8VZd2oo+M5iPBXMgqEl+vhlKp1JoRLpsNhjKYQLR6CIMNwSDYQEV7KwRLVA99gDlBQ0kAAWbSyKTiGg43jBHJSAC0QOgrGYqDQR6kwVgDXg1+Y8AgArY+gwFBggIOxrxICAAC94H0AAOY9gj4FNXCQABifd0OCWQaBgBoBSQbRxD0F8jA3INcFqHEISoXAOVYYAQIEa8CDoYhviQN0qF4EgsO4eAjEUQd4DUDRilHfQAGY0GMABdIwgA)
+* [htm + Stateful Component](https://flems.io/#0=N4IgtglgJlA2CmIBcA2ArAOjQJgDQgDMIEBnZAbVADsBDMRJEDACwBcxYR8BjAeytbwByEGzAACeAA86ABwRcQJeAm6sI-MowAMSAIx6QAX1zU6DJgCsyPfoOGMIYWbwBOrcWPEFXvCQHIxfwBuAB0qJxd3cWBxMFw43gBXAXEjb18ApLAaCBDw8L4qEg8xWHEAXk92DAAjCCooAAowAEowqkLNDwBBWFgAYRpZEkrxJtbKgD4Y8PFxBA8ANxpYJPgx-3yqebnxV3hWJNcdienqjgADPfmAHigIJamb+fFb2SmAFQBPWQ2SPwbADubigo1YvHEJGYyVYSFuAHoPq9xAUdii3g1ZElWC8UaxfvAKqEQIIpLiQHjXis1kSACTAGnrIxU+b8LE4ioMpqxVg0VwAc0OaUmFRmTI2VT5gsOGAlLPRKIRz0Vrypt2Y2CmDIlGAhAFVZH9XENlBMjIjNSqUYiHk89tcqEYOuEwMkBE0oLxuNkhKw6rwoN8EmcxRdYI67nbra8NXopgAJFSwSEg1ywKAZPzibK5cQAaguAEJLfGXrcGX1BsMSOllXtbY8VZd2oo+M5iPBXMgqEl+vhlKp1JoRLpsNhjKYQLR6CIMNwSDYQEV7KwRLVA99gDlBQ0kAAWbSyKTiGg43jBHJSAC0QOgrGYqDQR6kwVgDXg1+Y8AgArY+gwFBggIOxrxICAAC94H0AAOY9gj4FNXCQABifd0OCWQaBgBoBSQbRxD0F8jA3INcFqHEISoXAOVYYAQIEa8CDoYhviQN0qF4EgsO4eAjEUQd4DUDRilHfQAGY0GMABdIwgA)
+
+* [htm + Async Fetch](https://flems.io/#0=N4IgtglgJlA2CmIBcB2AbAOgCwCYA0IAhgK4AuA9gEryzmFTIBmhsAzvAYxAq8gNqgAdoTCIkIDAAtSYWCAIBjcoNLwVyEAEFWAT0EKABADF4pBZPkh2CBaQjLe4gAxIAjK5ABfPEJFiJAFa8isqq6uIQYAAO5ABOpAbSYAaMseTJAORJGQDcADqCkTHxBsAGYHjl5MQqBp4paZnEYIQQuQUFSoKsCUmwBgC8iTIYAEYQglAAFGAAlPmCnQ4JmuOwEKQ6AMrwhLHmgwZTs4MAfKUFBgYICTEA1vBgyocZURB3hObE7YJXNwaxeCsYiwBJDMrCURIAyCEGwSqENYbCBA6F8AC6dQWlwMXR6BgA5qZVtxkUDDoRdPojicBudgDirqRYjoLr8rhy8QkoIRSIQKQB3VoJRimcxTAAG0lIUVYSAA9PL7rs3hglPLCG95QA3HBK8gPJ6CeUAEmAyqNngls0ZHKuGFIkjUU1iZwBGCCymO8w67LtgOBoIwiNJdnJQx5fODSLDrAwLSiU3IbvI0dDOgwkPgPr9HIDINImb8hwtygWdvqCl5Bym2bZdquePICAw8FiaViUwyAFF23FoQAFA2PZ6Ccgi6qTDAZHMNgFAgtp9axw4Y21XfNBrOHWGwWDljmeHGebHswGkYixX7HN19CW2gA8UAg2tO64MD4mUTI76ZOii8ADKoAAepC-gY2osMQgFmqWghHrmdpRLAnzwJIzZQG2Ax5CAcEwn4OHgcoX5kAMZq1tqtLnHhQzwNqDp7EShaQbA0EIXO8pvohBjvg+oxkBQvzKAo6wKHcZHAExJLLiirCeFxc5XOwezmLx8r8aQgkKQ275mpuhbbgAZIZwyyPe3FXE+L7aYpBh6QuW5+J4GSsAYIYyai4GWSCNm2XZwD6UuZJxgmUz8nSpmwOZfkNg+6ynGahCeA+8rxRyXkcta7F+SlPngSlz6vu+ErZZZ8qFdpEoLCevpPDUpBTFA5AKM0aiFqM5BQDolQ3nSOJ3g+ZrSRs2y7Pskj1Jx5nzJYSjRNwbbILusDeL4ogaGqrDBCAXRhKQGgdV1wAtLEBITEgWBOFEwFuWQ5A5C0wEALQCtAjpIGgACsV3ATk6yCPAT1OhABLSG4GBoDkjChE9rAQAAXvAbgABzXTkSi0LESAAMRYHjORRPQz6CASSBOAYrg-Z4h3dRpgl4CRpDANDKhPcwkCwDoSBGuQrCEwo8CeJY1jwLY9jdBoLiuAAzJ9Xjop4QA)
 
 * [3rd Party Library Integration](https://flems.io/#0=N4IgtglgJlA2CmIBcBWATAOgOwE4A0IAZhAgM7IDaoAdgIZiJIgYAWALmLCAQMYD21NvEHIQAZgBOUAAQAFWhLYBPaQBkIAIwkKVASUHwA5trYQB0gKIAPegAcE3EKXgIepgeSYAGJGKwgAXzwaekZmACtyXgEhESYIMFs+RWkAYRYFNmlCCT4waQBydjZbUiQAenL4UjAMUhZyngzFDEjy2gBXNj4CgG4AHWoEpJTgaTA8cb4OwWkA7Nz8go6wWgg+wcH+alIs9MyAQVtbaQBeaQAKAEozgD5pYEHpaQQspsyB6ifpbd3pKFobFoZ2kFG+zzGSngCiQ0jQXgAjAAWSb8GZsWFoNBzPDgh7SKEwuGIlCo6aCWFiLw4vGQ6ESTGIgBsZPRmIAHDTqM8ALqfb6-LICACy5Ky5wu1D4UHgN1O90e3OeP2a4uk1HgAHc0qrJdL4JNFcrlcpbPBYQUNAoCrilcaAUDYUbjcrYLQNC4yv9AbQMKtbBdctr5dIgxhCRIrraXcqHbRnGwvWC7TGHnjUy93S4LQceABHDoQUgQdw7aQaFQRm3p1Nx2Fxv20ANBu6hviajBowRXGvGgK96Q8mv9lMBK6fY14iTwNgdCTc66t53G94tGW7XJKa4T5Uj54BHffaez+eXOX3C54sAXAo8WjUABu8Zt+KgeVhIrFk12SgQFpY8AQIY7CwkiXheLYVi9AUcw9kq46DAemzUGAYoXG+PArMIbAYBo0pKJMi4hpeSrXgUUAQA+1Ypte+yKEcthwc8NzSIMVwIdQjj8IkJDwBIyDUB0sCwAQziuKWnggD4SI4IEwQgHQDCiJ2pBRCA2yxGwoh4VASjAKsEiGBA1BIGBkHSJ03S9KsVgALSatAbAsEgTIoBBUGwMZ8C2QBQEgQiGBMr0hAxLZxYAF7mgi7KQb0-CwMkSAAMRIqlvS2LQMDGYYSDUgi7kBDpBEaF03TUHgxm2F0wAhYItmEPQJBKEgqFSqQGU8PAASOGJ8BuGYOyiD4CJiCggQ8gEQA)
+
+* [Keyed list](https://flems.io/#0=N4IgtglgJlA2CmIBcB2AbAOgCwCYA0IAZhAgM7IDaoAdgIZiJIgYAWALmLCAQMYD21NvEHIQAaXgBPeFAAEsCKTbcQpeAh5sIA8kwAMSAIx6QAXzw16jZgCtyvAUJFMA9C9nwAHvQAOCWbRQtD5CcoQATnxgsmws8B6ePOoIgrIAygBu6kIxAK5sfOEQtLBIsuxsPqRIbgi04dQYpFmwQhhQ8BkubPmFxbAuANZSMgC08LQ8LKMARrB8PIOkADrUEGA+hWyywLJgeHt8uammshFRsgDkuWC0EJcA3KurCNuxENQA5qSyALyyFFWsh2smgZUMBzoDDKl2Cfngl1k5iBILBsnwsih8BhM1odDoiOR1GBuzRAGZIVYYTx6pE2IS8CjSVAylhKdCrlAjp8WNR8gymaCWbIAKzs7FXeCfT6E1YAXSe1FWhGOmm0xJYeLg8AAwgpFgAKACUOxR7y+P3+5u+TX18ANhiNitMz2o-GoSg8YD4NkUf1NxICPnhMMAPBuAOX3LozA7j8bQw4AZfajKJp4TpMMAfBuAVV3k4GubkeXy2GHAJb7ueBUs+mcAWruXVamRWrd2egAqLA+n39Bo+EDYJt+AD4A8Dm9t4N7ff7xz7FBQe2wMFiFa7geF4D0GrIDbssUj+0ODSjgWADZcfFHZAADAAkwGnvtO-1vWNMl6NKKd9cbbp02wAgsGXb7luKInpcUAQBk5bAnsp4zPkBTUBewBHjBAg8PqgxlJq1DanqECLKh5hXAAStOWRnBA4SetalxGtGMGyKh1qkBgtw+AaBrWvuqHHgabYdgcKGBoxwLDJIZTWhg0AMaJwJYpJ7ZfIuVi8XuwKoe+gZaZ+SrUN6xxsAaXI8DcwgLjMfBQJIBwAT4ukqPwGwkPA4TIHysCwOYlgMKIGA8KQ9ggO6TjKEwlnWcAtzhJ8HxIFgeg+J4AS9A8tyeKMADu0CxEgaAiolngPAo1DwKMcQQDyxaGBgaAPIQjijKQEAAF7YoYAAcSUPPw8zhEgADEWDDQ8PiBBBXxIHosjGElpgRTZ8FsIheAfD4+TAA1gijIQ9AkBJ3rUHwpBjUkpgqGoGhaDoogGIYZIimYcqmEAA)
 
 ## Credits
 
