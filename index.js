@@ -349,15 +349,14 @@ export function mount(node, root) {
   node = node.lastChild;
 
   let dom = { type: ELEMENT, node },
-    redraw = _ => requestAnimationFrame(
-      _ => (node = patch(
-        node.parentNode, // parentNode
-        node, // node
-        dom, // oldVnode
-        (dom = root()), // newVnode
-        redraw // redraw
-      ))
-    );
+    draw = _ => (node = patch(
+      node.parentNode, // parentNode
+      node, // node
+      dom, // oldVnode
+      (dom = root()), // newVnode
+      redraw // redraw
+    )),
+    redraw = _ => requestAnimationFrame(draw);
 
   REDRAWS.push(redraw);
   return redraw() && redraw;
