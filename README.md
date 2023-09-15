@@ -4,7 +4,9 @@
 
 *Logo by [twitter.com/haggle](https://twitter.com/haggle)*
 
-A [small](https://bundlephobia.com/package/umai) UI library with a familiar API.
+A small UI library with a familiar API.
+
+![bundle.js badge](https://deno.bundlejs.com/badge?q=umai)
 
 ## Install
 
