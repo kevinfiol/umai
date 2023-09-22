@@ -211,7 +211,7 @@ const Dashboard = () => (
 
 ### Stateful Components
 
-Stateful components are functions that return stateless components (known as "closure components" in [Mithril.js](https://mithril.js.org)).
+Stateful components are functions that return stateless components.
 
 ```jsx
 const StatefulComponent = (initialProps) => {
