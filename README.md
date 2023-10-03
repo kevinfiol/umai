@@ -268,7 +268,7 @@ const App = () => (
 );
 ```
 
-### `dom` and `remove` properties
+### `dom` property
 
 DOM nodes are passed to the `dom` handler immediately upon being created.
 
@@ -329,23 +329,6 @@ const ChartApp = () => {
 
   return () => (
     <canvas dom={onMount} />
-  );
-};
-```
-
-In cases where you'd like to invoke a method only on Node removal and not creation, you may pass a callback to the `remove` property.
-```jsx
-const MyComponent = () => {
-  console.log('initialized MyComponent!');
-
-  const onRemove = () => {
-    console.log('unmounted MyComponent!');
-  };
-
-  return () => (
-    <div remove={onRemove}>
-      ...
-    </div>
   );
 };
 ```

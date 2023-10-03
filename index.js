@@ -14,7 +14,7 @@ let NIL = void 0,
 let getKey = v => v == null ? v : v.key;
 
 let patchProp = (node, name, newProp, redraw) => {
-  if (name === 'dom' || name === 'remove') {
+  if (name === 'dom') {
     // do nothing
   } else if (name in node) {
     if (name[0] === 'o' && name[1] === 'n') {
@@ -93,7 +93,7 @@ let createNode = (vnode, redraw) => {
       );
 
   vnode.rm = props
-    ? isFn(props.dom) && props.dom(node) || props.remove
+    ? isFn(props.dom) && props.dom(node)
     : NIL;
 
   return (vnode.node = node);
@@ -107,7 +107,7 @@ let getRemoves = (vnode, removes = []) => {
     getRemoves(vnode.instance, removes);
   else if (isFn(vnode.rm)) {
     let res = vnode.rm(vnode.node);
-    if (isFn(res.then)) removes._async = 1;
+    if (isFn(res.then)) removes._async = true;
     removes.push(res);
   }
 
@@ -416,5 +416,4 @@ export function m(tag, ...tail) {
     : { type, tag, key, props, children };
 }
 
-/** @type {import('./index.d.ts').retain} **/
 m.retain = _ => m(RETAIN_KEY);
