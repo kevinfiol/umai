@@ -6,20 +6,22 @@ interface Props {
 }
 
 interface VNode {
-  m?: number;
+  type: number;
   tag: string | Component | StatefulComponent;
   props: Props;
   children: ChildNode[];
+  key?: unknown;
 }
 
 type Component = (props: Props, oldProps?: Props) => VNode;
 type StatefulComponent = (props: Props) => Component;
+type VNodeFactory = (tag: string, ...tail: (Props | UmaiNode)[]) => VNode;
 
 /** Creates a virtual DOM node. Can be used to create HTML Element vnodes or consume components. **/
-export function m(tag: string, ...tail: (Props | UmaiNode)[]): VNode;
-
-/** Returns the old virtual DOM node for the current component. **/
-export function retain(): VNode;
+export const m: VNodeFactory & {
+  /** Returns the old virtual DOM node for the current component. **/
+  retain: () => VNode;
+};
 
 /** Memoizes the given component. Components will re-render only if their props change between render cycles. **/
 export function memo(component: Component | StatefulComponent): Component | StatefulComponent;
