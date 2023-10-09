@@ -37,9 +37,11 @@ See [Examples](#examples).
 
 ### JSX
 
-If you prefer JSX, you can configure your favorite compiler/bundler to transform `m` calls to JSX. For esbuild, see [Using JSX without React](https://esbuild.github.io/content-types/#using-jsx-without-react). Also, see [test/esbuild.js](./test/esbuild.js) for an example esbuild configuration.
+**Note: JSX requires a build step.**
 
-In order to use JSX, the factory function (`m`) must be imported at the top of each of your JSX files.
+If you prefer JSX, you can configure your favorite compiler/bundler to transform JSX to `m` calls at build time. For esbuild, see [Using JSX without React](https://esbuild.github.io/content-types/#using-jsx-without-react). Also, see [test/esbuild.js](./test/esbuild.js) for an example esbuild configuration.
+
+In files containing JSX, the factory function (`m`) must be imported.
 
 ```jsx
 import { m } from 'umai'; // this is required to use JSX
