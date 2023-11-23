@@ -167,6 +167,8 @@ const Todo = () => (
 Triggering manual redraws is also possible using `redraw`. This is helpful when dealing with effects or asynchronous operations.
 
 ```jsx
+import { m, redraw } from 'umai'; 
+
 let time = '⏰ starting...';
 
 setInterval(() => {
@@ -229,43 +231,31 @@ const StatefulComponent = (initialProps) => {
 
 In the example above, the inner function (the stateless component) is run on every re-render, whereas the outer function (initializing `localVariable`) is only run once when the component initializes.
 
-Here is the same Todo component from earlier, but as a stateful component. We can take advantage of `initialProps` to set the initial `todos`, which can be modified and have its changes reflected in subsequent renders.
+Here is an example of a Counter component that contains its own state. We can take advantage of `initialProps` to set the initial `count`.
 
 ```jsx
-const Todo = ({ initialTodos }) => {
-  let input = '';
-  let todos = [...initialTodos];
+const Count = ({ initialCount }) => {
+  let count = initialCount;
 
-  return () => (
+  return () => {
     <div>
-      <input
-        type="text"
-        value={input}
-        oninput={(ev) => input = ev.target.value}
-      />
-
-      <button onclick={() => { todos.push(input); input = ''; }}>
-        add todo
+      <h1>Count: {count}</h1>
+      <button onclick={() => count += 1}>
+        increment
       </button>
-
-      <ul>
-        {todos.map(todo =>
-          <li>{todo}</li>
-        }
-      </ul>
     </div>
-  );
+  };
 };
 ```
 
-Now that this component is stateful, I can mount multiple `Todo` components in my app, each containing their own state.
+Now that this component is stateful, I can mount multiple `Count` components in my app, each containing their own state.
 
 ```jsx
 const App = () => (
   <div>
-    <Todo initialTodos={['walk the dog']} />
-    <Todo initialTodos={['take out trash']} />
-    <Todo initialTodos={['wash the car']} />
+    <Count initialCount={0} />
+    <Count initialCount={10} />
+    <Count initialCount={100} />
   </div>
 );
 ```
@@ -516,6 +506,8 @@ const Comment = ({ userName }) => (
 ## Examples
 
 * [Counter](https://flems.io/#0=N4IgtglgJlA2CmIBcB2AbAOgCwCYA0IAZhAgM7IDaoAdgIZiJIgYAWALmLCAQMYD21NvEHIQAYT4BXQfABO3EKXgIebCAPJMADKhABfPDXqNmAK3K8BQkUwhgADn1lsABMBdg8HqYJd6XhLJ8YC4A5JJgtBChANwAOtQJCK780q4AvC5a8YnU-NSkrhJpci6ZABQAlGUAfC7lCS4e5aFQEABuoXiNTc2hLACMXS6pgpXd1L19AEaSbGwCw+4CPLAQPADWSPXV6XWjrgDUmQN+XqEQebLwDIKhlT0P1JU5CWA+bOVQfDwRwmwYaZ8KAATy8xRksheCn4DhIcmQ1EksFgBCUKjUGlEOgAzDh9IYQHQGKIMDxSBYQPlrGxREDQcBIrIAOaXJBYLT2AAeLlocz4MUiXIAtAB3aBsFhINAAVk5XJia2o8GFLHgEGZ7CQAwwaBihCswtIEAAXvBtQAObkxfiwJxIADEWGdMXstBgl2ZSC0LgG8r09LBs3mAjwl3sc2ABsEwsI9BIIKQ72ofFIbp48D0CnR8FU6gK2O1OJl+gAunogA)
+
+* [Stateful Counter](https://flems.io/#0=N4IgtglgJlA2CmIBcBWAjAOgBxYDQgEMBXAFwHsAleWMgqZAMwNgGd58WBjAJzNlmQBtAAy5hAXXwMICFkNAA7AmERIQGABYkwA-JzIKS8Q8hABlEgSMMisAAQBhMkUPxuIDtXicSEA3LVhJDQANhAAX1xFZVUQACsWAA8MBI8QfVcTNQB6bLsIAHMFMm54OxINCBYAbnLKlnyGgjsGBDAGjQJOAGtysjtjAgAjBDsExJaSu2KFAFoqLpI7WAgh7gJuCHgWAB0FCDAABxKl4DswO3CW3guAciIwAghb6r2AdwgFKDI3jAWfOwAXjsZx48Cs8AAom1jCQkOdLtU0mwED4-AoAiAggAmFARKIgJQqUwpOR6AxGLIgA7Hbinc64c7OQyXa5kO4PJ4vPZ7DIsJZOFxLYEACjOnwgvmYgpZ4QAlECAHwgvZ2ZbwJb6IVA-L7KWwGUkV4KVV2UokIjcBR2EUKwHKkWmtUAHigEAAboqnWq7M6NGhFYb4cAtYZws7sv6vdafS6hqRyNaDJwVj1AcBbUq7KGlgBqYFocLR2Oxz5glSGb0u7LxkiJ4s+iNuz2muXG8LG3n+JYAQUOhx1mftNtNro9DZdht1kog0uZJHTwiu2QnvqnEv1hvTaCXdhX3ud671s4N8+3wl3+5jTfHezbPIUYHnIu+nAesIwQzIUAAnoy+4cbZpPoRwyG4phDMM1D4tExJqBgnAsGS6QUrCphILwZCnKasyzEMBTwgAxGgnAkSRxpqrh+g0NwRHwAw9H0RRdi4V+3BQG48IFOsP7MbhKwKN0RFYCgIkMAw7YPgAAt08A-gw6wqA0TAcbMnwqjGCnshpsZkIcXSSj+8LCMx4SmuQOk+npBkkEZdhoKZexmSaChfr+lkMBSsxMJAsB2SwBAYrMbCbBJpqQT03HMlAszUSU8LuhsIqsQU94xnFtF2Il3DJbFfAlGlzl7M0wCmhlCVJfxnzdIVD6POppUxscLAzgY8KlLAVgevAzGPIkswfFAFTwlgF6HIkvUbAUnzGXYxDkL1nyzBo8CFFo8I7mg7oaMx+kwJ8BH2fAYCSS5GArPydjKudtBugoBSWdZnCGcZzGBQcXVtXYwgYAALA0P1YMpJRvBsUDKXQ8BqQop17BgLAPI83A-pZzWtQo7XUF17o9aae13YdwjffZpQXNipPMWxHHcHhWHkGAG3jXYLB8NAWWVbT7FuLVZ0I2ASMo8qLD6dajVqmjvhfcMLOwKQuMxggDBwt9sMKAh7IVthMZU24szkIcjMTDLbPZblOvcGlapI9NGNHRcRMO7tdAExtx3E47pqeYYwUQAAXvAG2-eNqvq-zsJXXYGClIcKzbKjzsHbNDt2+2yJeGi-imL92JIAAzAAnBE4jhEAA)
 
 * [Clock](https://flems.io/#0=N4IgtglgJlA2CmIBcB2AbAOgCwCYA0IAZhAgM7IDaoAdgIZiJIgYAWALmLCAQMYD21NvEHIQAYVh8eAa24hS8BDzYQB5JgAYkAVhABfPDXqNmAK3K8BQkUwhgADnwBObAATBXYPJ74BXQd5O8FBOtADurnquhE58YK4A5L5gtBAJANwAOtTZCG4qDK4AvImAD8SupGy0LhDUAOYYjRnZ2QpsAJKC8E4AbrSwABQDAJTFAHzu2a6uBfDFrtTwEQAitEIjGGx8ADJS-fAAKnbwAMpsTrV1I1nU00Eh4dfZBq4AjBofwzfZ-NSVrhIpNJ5iNxq4BlNPAMElAID0EnhIdMwNCWK8ETNjsNEbdXMNsl8WtQwH5BAMoFJksI2BgAEZ8KAAT28gJkXzk-AcJG6yGovlgsAICiUKjUoi0AGYABz6QwgOgMUQYHikCwgX7WNiielM4ApJx1WpILAaewAD1ctF8W3SKTNAFowtA2CwkGhtKazelYLV4PaWPAIHV2EhXhg0OlCFZ7aQIAAveChqXm9L8SROJAAYiwOfS9loMEuSA0b09eh1zNp1q21DwtXs1uAUcE9sI9BIjKQJOofFI+Z48D0cmF8GUqj+4tDEt0egAunogA)
 
