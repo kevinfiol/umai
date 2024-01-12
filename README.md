@@ -237,14 +237,14 @@ Here is an example of a Counter component that contains its own state. We can ta
 const Count = ({ initialCount }) => {
   let count = initialCount;
 
-  return () => {
+  return () => (
     <div>
       <h1>Count: {count}</h1>
       <button onclick={() => count += 1}>
         increment
       </button>
     </div>
-  };
+  );
 };
 ```
 
