@@ -107,7 +107,7 @@ let getRemoves = (vnode, removes = []) => {
     getRemoves(vnode.instance, removes);
   else if (isFn(vnode.rm)) {
     let res = vnode.rm(vnode.node);
-    if (isFn(res.then)) removes._async = true;
+    if (res && isFn(res.then)) removes._async = true;
     removes.push(res);
   }
 
