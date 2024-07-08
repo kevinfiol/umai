@@ -495,3 +495,61 @@ test('memoize stateful component', () => {
   env.fire(button, 'click');
   assert.equal(calls, 3); // c
 });
+
+test('cleanup functions should not throw', () => {
+  let watch = 0;
+
+  function Counter() {
+    function onMount() {
+      watch = 1;
+  
+      return () => {
+        watch = 2;
+      };
+    }
+  
+    return () => m('div', { dom: onMount }, 'counter');
+  }
+  
+  function Container() {
+    let show = false;
+    const toggle = () => show = !show;
+  
+    return () => (
+      m('div',
+        m('button', { id: 'toggle', onclick: toggle }, 'toggle'),
+        show && m(Counter)
+      )
+    );
+  }
+
+  const App = () => m(Container);
+  const { root } = setup(App);
+
+  assert.equal(watch, 0);
+  assertHtml(root.innerHTML, `
+    <div>
+      <button id="toggle">toggle</button>
+    </div>
+  `);
+
+  const button = document.getElementById('toggle');
+  env.fire(button, 'click');
+
+  assert.equal(watch, 1);
+  assertHtml(root.innerHTML, `
+    <div>
+      <button id="toggle">toggle</button>
+      <div>counter</div>
+    </div>
+  `);
+
+  env.fire(button, 'click');
+
+  assert.equal(watch, 2);
+  assertHtml(root.innerHTML, `
+    <div>
+      <button id="toggle">toggle</button>
+    </div>
+  `);
+});
