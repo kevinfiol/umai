@@ -5,7 +5,7 @@ const OUTFILE = resolve('test/jsx.test.js');
 const ENTRY = resolve('test/jsx.jsx');
 
 /** @type {esbuild.BuildOptions} **/
-const cfg = {
+const options = {
   format: 'esm',
   entryPoints: [ENTRY],
   outfile: OUTFILE,
@@ -16,6 +16,4 @@ const cfg = {
   jsxFragment: '"["'
 };
 
-// create & configure context
-const ctx = await esbuild.context(cfg);
-ctx.rebuild().finally(ctx.dispose);
+esbuild.buildSync(options);
