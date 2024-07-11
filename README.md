@@ -400,7 +400,7 @@ const App = () => (
 ```jsx
 const Users = () => (
   <>
-    <p>kevin<p>
+    <p>kevin</p>
     <p>rafael</p>
   </>
 );
