@@ -174,7 +174,7 @@ const Todo = () => (
     <ul>
       {todos.map(todo =>
         <li>{todo}</li>
-      }
+      )}
     </ul>
   </div>
 );
