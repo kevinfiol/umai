@@ -35,11 +35,27 @@ mount(document.body, App);
 
 See [Examples](#examples).
 
+### Getting Started
+
+A good way to get started is to clone the template pre-configured with Vite and TypeScript using [degit](https://github.com/Rich-Harris/degit).
+
+```bash
+npx degit https://github.com/kevinfiol/umai-vite/ hello-world
+cd hello-world
+npm install
+npm run dev
+```
+
+The template is also accessible via [StackBlitz](https://stackblitz.com/~/github.com/kevinfiol/umai-vite).
+
 ### JSX
 
 **Note: JSX requires a build step.**
 
-If you prefer JSX, you can configure your favorite compiler/bundler to transform JSX to `m` calls at build time. For esbuild, see [Using JSX without React](https://esbuild.github.io/content-types/#using-jsx-without-react). Also, see [test/esbuild.js](./test/esbuild.js) for an example esbuild configuration.
+If you prefer JSX, you can configure your favorite compiler/bundler to transform JSX to `m` calls at build time.
+
+* For esbuild, see [Using JSX without React](https://esbuild.github.io/content-types/#using-jsx-without-react). Also, see [test/esbuild.js](./test/esbuild.js) for an example esbuild configuration.
+* For Vite, see the `tsconfig.json` and `vite.config.ts` files in the [umai-vite](https://github.com/kevinfiol/umai-vite/) template.
 
 In files containing JSX, the factory function (`m`) must be imported.
 
