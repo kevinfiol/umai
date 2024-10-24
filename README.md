@@ -37,7 +37,7 @@ See [Examples](#examples).
 
 ### Getting Started
 
-A good way to get started is to clone the template pre-configured with Vite and TypeScript using [degit](https://github.com/Rich-Harris/degit).
+A good way to get started is to clone the [Vite template](https://github.com/kevinfiol/umai-vite/) pre-configured with TypeScript using degit.
 
 ```bash
 npx degit https://github.com/kevinfiol/umai-vite/ hello-world
