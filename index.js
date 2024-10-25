@@ -13,9 +13,19 @@ let NIL = void 0,
 
 let getKey = v => v == null ? v : v.key;
 
+let styles = obj =>
+  Object.entries(obj).map(
+    ([k, v]) => k.replace(/[A-Z]/g, m => '-' + m.toLowerCase()) + ':' + v
+  ).join(';');
+
 let patchProp = (node, name, newProp, redraw) => {
   if (name === 'dom') {
     // do nothing
+  } else if (!isFn(newProp) && node.getAttribute(name) != newProp) {
+    if (newProp == null || newProp === false) node.removeAttribute(name);
+    else {
+      node.setAttribute(name, name === 'style' && isObj(newProp) ? styles(newProp) : newProp);
+    }
   } else if (name in node) {
     if (name[0] === 'o' && name[1] === 'n') {
       let res, fn = newProp;
@@ -25,9 +35,6 @@ let patchProp = (node, name, newProp, redraw) => {
           ? res.finally(_ => (redraw(), res = NIL))
           : (redraw(), res = NIL);
     } else if (name !== 'list' && name !== 'form') node[name] = newProp;
-  } else if (!isFn(newProp) && node.getAttribute(name) != newProp) {
-    if (newProp == null || newProp === false) node.removeAttribute(name);
-    else node.setAttribute(name, newProp);
   }
 };
 

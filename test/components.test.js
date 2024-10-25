@@ -40,6 +40,39 @@ test('mounting nested elements', () => {
   );
 });
 
+test('style builder', () => {
+  const App = () => (
+    m('div', { style: 'background-color:green' }, 'hello')
+  );
+
+  const { html } = setup(App);
+  assert.equal(html,
+    '<div style="background-color:green">hello</div>'
+  );
+});
+
+test('style builder w/ objects', () => {
+  const App = () => (
+    m('div', { style: { backgroundColor: 'green', border: '1px solid red' } }, 'hello')
+  );
+
+  const { html } = setup(App);
+  assert.equal(html,
+    '<div style="background-color:green;border:1px solid red">hello</div>'
+  );
+});
+
+test('style builder w/ empty object', () => {
+  const App = () => (
+    m('div', { style: {} }, 'hello')
+  );
+
+  const { html } = setup(App);
+  assert.equal(html,
+    '<div>hello</div>'
+  );
+});
+
 test('state update onclick', () => {
   let count = 0;
   const App = () => (
