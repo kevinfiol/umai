@@ -272,11 +272,11 @@ declare namespace m {
 }
 
 interface MFunction {
-  /** Creates HTML element vnodes, or components. Pass all children as varargs. **/
-  <T extends Tag>(tag: T, ...tail: (m.JSX.Element | VNode<any> | Primitive)[]): VNode<T>;
-
   /** Create HTML element vnodes, or components. Pass props as second argument. Pass all children as varargs. **/
   <T extends Tag>(tag: T, props: Props<T>, ...tail: (m.JSX.Element | VNode<any> | Primitive)[]): VNode<T>;
+
+  /** Creates HTML element vnodes, or components. Pass all children as varargs. **/
+  <T extends Tag>(tag: T, ...tail: (m.JSX.Element | VNode<any> | Primitive)[]): VNode<T>;
 
   /** Returns vnode already existing in virtual DOM. Use for memoization. **/
   retain(): VNode<any>;
