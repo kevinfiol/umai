@@ -21,20 +21,26 @@ let styles = obj =>
 let patchProp = (node, name, newProp, redraw) => {
   if (name === 'dom') {
     // do nothing
-  } else if (!isFn(newProp) && node.getAttribute(name) != newProp) {
-    if (newProp == null || newProp === false) node.removeAttribute(name);
-    else {
-      node.setAttribute(name, name === 'style' && isObj(newProp) ? styles(newProp) : newProp);
-    }
-  } else if (name in node) {
+  } else if (
+    name in node
+    && name !== 'list'
+    && name !== 'form'
+    && name !== 'style'
+  ) {
     if (name[0] === 'o' && name[1] === 'n') {
       let res, fn = newProp;
 
-      node[name] = ev =>
+      newProp = ev =>
         (res = fn(ev)) instanceof Promise
           ? res.finally(_ => (redraw(), res = NIL))
           : (redraw(), res = NIL);
-    } else if (name !== 'list' && name !== 'form') node[name] = newProp;
+    }
+
+    node[name] = newProp;
+  } else if (newProp == null || newProp === false) {
+    node.removeAttribute(name);
+  } else {
+    node.setAttribute(name, name === 'style' && isObj(newProp) ? styles(newProp) : newProp);
   }
 };
 

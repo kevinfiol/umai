@@ -27,6 +27,14 @@ test('mount app', () => {
   );
 });
 
+test('using innerHTML', () => {
+  const App = () => m('p', { innerHTML: '<strong>hello world</strong>' });
+  const { html } = setup(App);
+  assert.equal(html,
+    '<p><strong>hello world</strong></p>'
+  );
+});
+
 test('mounting nested elements', () => {
   const App = () => (
     m('div',
