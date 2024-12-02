@@ -341,6 +341,26 @@ const ChartApp = () => {
 };
 ```
 
+### `style` property
+
+Objects following the [CSSStyleDeclaration](https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleDeclaration) interface are valid `style` attributes. The following two examples are functionally equivalent:
+
+```jsx
+// Using a string attribute
+const Header = () => (
+  <header style="background-color: red; font-family: monospace">
+    Welcome
+  </header>
+);
+
+// Using a CSSStyleDeclaration object
+const Header = () => (
+  <header style={{ backgroundColor: 'red', fontFamily: 'monospace' }}>
+    Welcome
+  </header>
+);
+```
+
 ### Memoization
 
 Memoization allows you to skip re-rendering a component if its props are unchanged between re-renders. `umai` provides a convenience utility for memoizing components using shallow equality checks.
