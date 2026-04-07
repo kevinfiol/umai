@@ -8,6 +8,7 @@
   "main": "dist/umai.cjs",
   "module": "dist/umai.js",
   "unpkg": "dist/umai.min.js",
+  "types": "index.d.ts",
   "umd:name": "umai",
   "terser": {
     "mangle": {
