@@ -280,6 +280,9 @@ interface MFunction {
 
   /** Returns vnode already existing in virtual DOM. Use for memoization. **/
   retain(): VNode<any>;
+
+  /** String tag used to generate fragments with JSX. **/
+  Fragment: string;
 }
 
 export const m: MFunction;

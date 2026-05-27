@@ -430,3 +430,4 @@ export function m(tag, ...tail) {
 }
 
 m.retain = _ => m(RETAIN_KEY);
+m.Fragment = '[';
